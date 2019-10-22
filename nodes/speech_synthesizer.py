@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from butia_speech.srv import *
 from std_msgs.msg import Bool
 from gtts import gTTS, lang
