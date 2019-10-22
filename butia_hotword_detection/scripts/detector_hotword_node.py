@@ -20,7 +20,7 @@ model = None
 keyword = None
 
 def detectionCallBack(hot_word):
-    keyword = os.path.join(keyword, hot_word + '_linux.ppn')
+    keyword = os.path.join(keyword, hot_word.data + '_linux.ppn')
     detector = DetectHotWord(library, model, keyword, sensibility)
     rate = rospy.Rate(1)
     detector.hear()
