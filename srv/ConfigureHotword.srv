@@ -1,0 +1,3 @@
+string hotword
+---
+std_msgs/Empty success
