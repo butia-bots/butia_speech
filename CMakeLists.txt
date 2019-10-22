@@ -56,6 +56,7 @@ add_service_files(
   DIRECTORY
     srv
   FILES
+    ConfigureHotword.srv
     SynthesizeSpeech.srv
 )
 

@@ -5,6 +5,7 @@ import rospkg
 from threading import Lock
 
 from butia_speech.detect_hotword import DetectHotWord
+from butia_speech.srv import ConfigureHotword
 
 from std_msgs.msg import Empty, String
 
@@ -16,13 +17,21 @@ keyword = None
 
 detector = None
 
-mutex = Lock()  
+mutex = Lock()
+
+def ConfigureHotwordService(ConfigureHotwordReq):
+    mutex.acquire()
+    global detector
+    detector = DetectHotWord(library, model, keyword + ConfigureHotwordReq.hotword + '_linux.ppn', sensibility)
+    detector.hear()
+    mutex.release()
+    return Empty()
 
 def detectionCallBack(hotword):
     mutex.acquire()
-    if detector is not None:
-        detector = DetectHotWord(library, model, keyword + hotword.data + '_linux.ppn', sensibility)
-        detector.hear()
+    global detector
+    detector = DetectHotWord(library, model, keyword + hotword.data + '_linux.ppn', sensibility)
+    detector.hear()
     mutex.release()
 
 if __name__ == '__main__':
@@ -34,11 +43,11 @@ if __name__ == '__main__':
     #detector_publisher_param = rospy.get_param('/topics/butia_hotword_detection/detected','/butia_speech/bhd/detected')
     #detector_subscriber_param = rospy.get_param('/topics/butia_hotword_detection/hot_word','/butia_speech/bhd/hot_word')
     detector_subscriber = rospy.Subscriber('/butia_speech/bhd/hot_word', String, detectionCallBack, queue_size=1)
+    config_service = rospy.Service('butia_bots/config_hotword', ConfigureHotword, ConfigureHotwordService)
     detector_publisher = rospy.Publisher('/butia_speech/bhd/detected', Empty, queue_size=1)
-    
-    if detector is None:
-        detector = DetectHotWord(library, model, keyword + 'hello doris_linux.ppn', sensibility)
-        detector.hear()
+    global detector
+    detector = DetectHotWord(library, model, keyword + 'hello doris_linux.ppn', sensibility)
+    detector.hear()
     while not rospy.is_shutdown():
         mutex.acquire()
         result = detector.process()
