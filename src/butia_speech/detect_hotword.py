@@ -9,7 +9,6 @@ import rospkg
 #sys.path.append(os.path.join(PACK_DIR, '/include/binding'))
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../include/binding/'))
-
 from porcupine import Porcupine
 
 class DetectHotWord():
