@@ -5,10 +5,8 @@ import numpy as np
 import pyaudio
 import rospkg
 
-#PACK_DIR = rospkg.RosPack().get_path('butia_hotword_detection')
-#sys.path.append(os.path.join(PACK_DIR, '/include/binding'))
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../include/binding/'))
+PACK_DIR = rospkg.RosPack().get_path('butia_speech')
+sys.path.append(PACK_DIR + '/include/binding')
 from porcupine import Porcupine
 
 class DetectHotWord():
