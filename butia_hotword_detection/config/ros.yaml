@@ -1,0 +1,4 @@
+topics:
+  butia_hotword_detection:
+    detected: "/butia_speech/bhd/detected"
+    hot_word: "/butia_speech/bhd/hot_word"
