@@ -162,6 +162,7 @@ include_directories(
 install(PROGRAMS
   nodes/speech_synthesizer.py
   nodes/detector_hotword_node.py
+  nodes/speech_to_text.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
