@@ -57,6 +57,7 @@ add_service_files(
     srv
   FILES
     SynthesizeSpeech.srv
+    SpeechToText.srv
 )
 
 ## Generate actions in the 'action' folder
