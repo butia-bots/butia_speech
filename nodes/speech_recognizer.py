@@ -5,7 +5,6 @@ from butia_speech.srv import SpeechToText, SpeechToTextResponse
 from speech_recognition import Microphone, Recognizer, WaitTimeoutError, AudioData
 import os
 import numpy as np
-import string
 from espnet_model_zoo.downloader import ModelDownloader
 from espnet2.bin.asr_inference import Speech2Text
 
@@ -31,7 +30,7 @@ if __name__ == '__main__':
     d = ModelDownloader()
     speech2text = Speech2Text(
         **d.download_and_unpack(tag),
-        device="cuda",
+        device="cpu", # cuda
         minlenratio=0.0,
         maxlenratio=0.0,
         ctc_weight=0.3,
