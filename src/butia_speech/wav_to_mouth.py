@@ -8,7 +8,7 @@ import numpy as np
 from std_msgs.msg import Int16MultiArray
 
 BUTIA_SPEECH_PKG = rospkg.RosPack().get_path("butia_speech")
-AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/music.wav")
+AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/talk.wav")
 
 class WavToMouth():
 

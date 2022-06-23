@@ -20,13 +20,6 @@ tag = 'kan-bayashi/ljspeech_vits'
 vocoder_tag = "none"
 
 def synthesize_speech(req):
-    #tts = gTTS(req.speech, lang=req.lang)
-    #tts.save('speech.mp3')
-    #mixer.init()
-    #mixer.music.load('speech.mp3')
-    #mixer.music.play()
-    #return SynthesizeSpeechResponse(Bool(True))
-    # synthesis
     with torch.no_grad():
         start = time.time()
         wav = text2speech(req.speech)["wav"]

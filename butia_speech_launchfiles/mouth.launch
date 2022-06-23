@@ -1,6 +1,8 @@
 <?xml version="1.0" ?>
 <launch>
 
+    <!-- <node name="speech_synthesize" pkg="butia_speech" type="speech_synthesize.py"/> -->
+
     <node name="audio_to_angle" pkg="butia_speech" type="audio_to_angle.py"/>
 
 </launch>
