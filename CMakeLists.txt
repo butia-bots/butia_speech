@@ -160,8 +160,10 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS
+  nodes/speech_recognizer.py
   nodes/speech_synthesizer.py
   nodes/detector_hotword_node.py
+  nodes/audio_to_angle.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

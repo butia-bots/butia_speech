@@ -6,10 +6,15 @@ from espnet2.bin.tts_inference import Text2Speech
 from espnet2.utils.types import str_or_none
 from scipy.io import wavfile
 from pygame import mixer
-import torch
+import os
 import time
+import torch
 import rospy
 import numpy as np
+import rospkg
+
+AUDIO_DIR = os.path.join(rospkg.RosPack().get_path("butia_speech"), "audios/")
+FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 tag = 'kan-bayashi/ljspeech_vits'
 vocoder_tag = "none"
@@ -25,9 +30,9 @@ def synthesize_speech(req):
     with torch.no_grad():
         start = time.time()
         wav = text2speech(req.speech)["wav"]
-        wavfile.write('fala.wav', text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
+        wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
     mixer.init()
-    mixer.music.load('fala.wav')
+    mixer.music.load(FILENAME)
     mixer.music.play()
     return SynthesizeSpeechResponse(Bool(True))
 

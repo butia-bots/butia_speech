@@ -13,7 +13,9 @@ tag = 'Shinji Watanabe/spgispeech_asr_train_asr_conformer6_n_fft512_hop_length25
 def handle_recognition(req):
     with Microphone(sample_rate=16000) as source:
         recognizer.adjust_for_ambient_noise(source, duration=0.5)
-        rospy.loginfo('Listening ...')
+        rospy.loginfo('LISTENING...')
+        rospy.loginfo('LISTENING...')
+        rospy.loginfo('LISTENING...')
         try:
             audio = recognizer.listen(source, phrase_time_limit=10, timeout=3)
             fs = audio.sample_rate
@@ -26,7 +28,6 @@ def handle_recognition(req):
     )
 
 if __name__ == '__main__':
-    rospy.init_node('speech_recognizer')
     d = ModelDownloader()
     speech2text = Speech2Text(
         **d.download_and_unpack(tag),
@@ -39,6 +40,7 @@ if __name__ == '__main__':
         nbest=1
     )
     recognizer = Recognizer()
+    rospy.init_node('speech_recognizer')
     #deepspeech_model = deepspeech.Model(deepspeech_model_dir + 'deepspeech-0.9.3-models.pbmm')
     #deepspeech_model.enableExternalScorer(deepspeech_model_dir + 'deepspeech-0.9.3-models.scorer')
     #stt = pipeline(task="automatic-speech-recognition", model="facebook/wav2vec2-base-960h")
