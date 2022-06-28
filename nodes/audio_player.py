@@ -16,7 +16,7 @@ def toTalk(msg):
 
     butia_text_to_speech = rospy.get_param("services/text_to_speech", "butia/synthesize_speech")
 
-    rospy.wait_for_service(butia_text_to_speech, timeout=rospy.Duration(3))
+    rospy.wait_for_service(butia_text_to_speech, timeout=rospy.Duration(10))
     try:
         synthesize_speech = rospy.ServiceProxy(butia_text_to_speech, SynthesizeSpeech)
         synthesize_speech(request)
