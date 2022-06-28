@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<launch>
+    <!-- Run the speech recognizer (input - speech-to-text) node -->
+    <node name="speech_recognizer" pkg="butia_speech" type="speech_recognizer.py" output="screen"/>
+    <!-- Run the speech synthesizer (output - text-to-speech) node -->
+    <node name="speech_synthesizer" pkg="butia_speech" type="speech_synthesizer.py" output="screen"/>
+</launch>

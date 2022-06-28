@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<launch>
+    <!-- Arguments to talk -->
+    <arg name="speech" />
+    <arg name="lang" default="en"/>
+    <!-- Start the speech to text service -->
+    <node name="speech_synthesize" pkg="butia_speech" type="speech_synthesize.py"/>
+    <!-- Node to talk -->
+    
+</launch>
