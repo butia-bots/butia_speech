@@ -1,0 +1,3 @@
+services:
+  speech_to_text: "/butia_speech/asr/transcribe"
+  text_to_speech: "butia/synthesize_speech"

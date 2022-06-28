@@ -1,5 +1,0 @@
-speech_converter:
-  channel: 1
-  rate: 8000
-  format: alsaaudio.PCM_FORMAT_S16_LE
-  periodsize: 160
