@@ -1,6 +1,0 @@
-<?xml version="1.0" ?>
-<launch>
-
-    <node name="audio_to_angle" pkg="butia_speech" type="audio_to_angle.py"/>
-
-</launch>

@@ -8,14 +8,14 @@ import numpy as np
 from std_msgs.msg import Int16MultiArray
 
 BUTIA_SPEECH_PKG = rospkg.RosPack().get_path("butia_speech")
-AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/music.wav")
+AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/talk.wav")
 
 class WavToMouth():
 
     def __init__(self):
         self.audio = None
         self.data = None
-        self.chunk = 1024
+        self.chunk = 2048
 
         self._read_data_of_audio()
 
@@ -37,9 +37,12 @@ class WavToMouth():
         self.output.data = []
 
         value = audioop.max(self.data, 2) / 100
-        value = int(0.3059*value)
 
-        self.output.data = [value, abs(100 - value)]
+        value = int(0.3059*value)
+        send_value = abs(100 - value)
+        new_send_value = int((send_value / (100/13)) + 22.0)
+        
+        self.output.data = [new_send_value, value]
 
         self.angle_publisher.publish(self.output)
 
