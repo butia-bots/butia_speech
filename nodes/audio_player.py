@@ -12,13 +12,13 @@ def toTalk(msg):
     
     request = SynthesizeSpeechRequest()
     request.speech = speech
-    request.lang = "en" # receive too
+    request.lang = "en"
 
-    butia_text_to_speech = rospy.get_param("services/text_to_speech", "butia/synthesize_speech")
+    synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "butia_speech/ss/speech_synthesizer")
 
-    rospy.wait_for_service(butia_text_to_speech, timeout=rospy.Duration(10))
+    rospy.wait_for_service(synthesizer_service_param, timeout=rospy.Duration(10))
     try:
-        synthesize_speech = rospy.ServiceProxy(butia_text_to_speech, SynthesizeSpeech)
+        synthesize_speech = rospy.ServiceProxy(synthesizer_service_param, SynthesizeSpeech)
         synthesize_speech(request)
 
         w2m = WavToMouth()

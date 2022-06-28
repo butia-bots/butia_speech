@@ -15,8 +15,8 @@ if __name__ == '__main__':
     library = PACK_DIR + '/include/lib/libpv_porcupine.so'
     model = PACK_DIR + '/include/model/porcupine_params.pv'
     keyword = PACK_DIR + '/resources/hello doris_linux.ppn'
-    detector_publisher_param = rospy.get_param('/topics/butia_hotword_detection/detected','/butia_speech/bhd/detected')
-    detector_subscriber_param = rospy.get_param('/topics/butia_hotword_detection/hot_word','/butia_speech/bhd/hot_word')
+    detector_publisher_param = rospy.get_param("publishers/butia_hotword_detection/topic","/butia_speech/bhd/detected")
+    detector_subscriber_param = rospy.get_param("subscribers/butia_hotword_detection/topic","/butia_speech/bhd/hot_word")
     detector_publisher = rospy.Publisher(detector_publisher_param, Empty, queue_size=1)
     detector = DetectHotWord(library, model, keyword, sensibility)
     detector.hear()

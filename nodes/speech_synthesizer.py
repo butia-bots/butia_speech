@@ -21,17 +21,12 @@ vocoder_tag = "none"
 
 def synthesize_speech(req):
     with torch.no_grad():
-        start = time.time()
         wav = text2speech(req.speech)["wav"]
         wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
     mixer.init()
     mixer.music.load(FILENAME)
     mixer.music.play()
     return SynthesizeSpeechResponse(Bool(True))
-    # mixer.init()
-    # mixer.music.load('/home/pedro/butia_ws/src/butia_speech/nodes/fala.mpeg')
-    # mixer.music.play()
-    # return SynthesizeSpeechResponse(Bool(True))
 
 if __name__ == '__main__':
     text2speech = Text2Speech.from_pretrained(
@@ -53,5 +48,6 @@ if __name__ == '__main__':
         noise_scale_dur=0.333,
     )
     rospy.init_node('speech_synthesizer')
-    rospy.Service('butia/synthesize_speech', SynthesizeSpeech, synthesize_speech)
+    synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/bs/speech_synthesizer")
+    rospy.Service(synthesizer_service_param, SynthesizeSpeech, synthesize_speech)
     rospy.spin()

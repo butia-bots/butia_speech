@@ -1,4 +1,20 @@
-topics:
+publishers:
+
   butia_hotword_detection:
-    detected: "/butia_speech/bhd/detected"
-    hot_word: "/butia_speech/bhd/hot_word"
+    topic: "/butia_speech/bhd/detected"
+
+subscribers:
+
+  butia_hotword_detection:
+    topic: "/butia_speech/bhd/hot_word"
+
+  butia_speech:
+    topic: "/butia_speech/bs/say_something"
+
+services:
+
+  speech_recognizer:
+    service: "/butia_speech/sr/speech_recognizer"
+
+  speech_sythesizer:
+    service: "/butia_speech/ss/speech_synthesizer"
