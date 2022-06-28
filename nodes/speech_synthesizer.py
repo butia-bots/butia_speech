@@ -20,13 +20,6 @@ tag = 'kan-bayashi/ljspeech_vits'
 vocoder_tag = "none"
 
 def synthesize_speech(req):
-    #tts = gTTS(req.speech, lang=req.lang)
-    #tts.save('speech.mp3')
-    #mixer.init()
-    #mixer.music.load('speech.mp3')
-    #mixer.music.play()
-    #return SynthesizeSpeechResponse(Bool(True))
-    # synthesis
     with torch.no_grad():
         start = time.time()
         wav = text2speech(req.speech)["wav"]
@@ -35,6 +28,10 @@ def synthesize_speech(req):
     mixer.music.load(FILENAME)
     mixer.music.play()
     return SynthesizeSpeechResponse(Bool(True))
+    # mixer.init()
+    # mixer.music.load('/home/pedro/butia_ws/src/butia_speech/nodes/fala.mpeg')
+    # mixer.music.play()
+    # return SynthesizeSpeechResponse(Bool(True))
 
 if __name__ == '__main__':
     text2speech = Text2Speech.from_pretrained(
