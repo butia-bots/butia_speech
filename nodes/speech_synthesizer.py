@@ -28,6 +28,10 @@ def synthesize_speech(req):
     mixer.music.load(FILENAME)
     mixer.music.play()
     return SynthesizeSpeechResponse(Bool(True))
+    # mixer.init()
+    # mixer.music.load('/home/pedro/butia_ws/src/butia_speech/nodes/fala.mpeg')
+    # mixer.music.play()
+    # return SynthesizeSpeechResponse(Bool(True))
 
 if __name__ == '__main__':
     text2speech = Text2Speech.from_pretrained(
