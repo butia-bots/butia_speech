@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<launch>
+
+    <!-- <node name="speech_synthesizer" pkg="butia_speech" type="speech_synthesizer.py" output="screen"/> -->
+
+    <node name="audio_player" pkg="butia_speech" type="audio_player.py" output="screen"/>
+
+</launch>

@@ -8,11 +8,12 @@ import numpy as np
 from std_msgs.msg import Int16MultiArray
 
 BUTIA_SPEECH_PKG = rospkg.RosPack().get_path("butia_speech")
-AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/talk.wav")
+AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/")
 
 class WavToMouth():
 
-    def __init__(self):
+    def __init__(self, filename="talk.wav"):
+        self.filename = os.path.join(AUDIO, filename)
         self.audio = None
         self.data = None
         self.chunk = 2048
@@ -30,7 +31,7 @@ class WavToMouth():
         self.rate = rospy.Rate(30) # 100hz
 
     def _read_data_of_audio(self):
-        self.audio = wave.open(AUDIO, "rb")
+        self.audio = wave.open(self.filename, "rb")
         self.data = self.audio.readframes(self.chunk)
 
     def _convert_data_to_angle(self):
