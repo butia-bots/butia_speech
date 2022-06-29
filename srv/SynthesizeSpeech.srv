@@ -1,4 +1,4 @@
-string speech
+string text
 string lang
 ---
 std_msgs/Bool success

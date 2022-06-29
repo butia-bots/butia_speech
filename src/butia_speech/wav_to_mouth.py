@@ -12,8 +12,8 @@ AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/")
 
 class WavToMouth():
 
-    def __init__(self, filename="talk.wav"):
-        self.filename = os.path.join(AUDIO, filename)
+    def __init__(self, filepath="talk.wav"):
+        self.filepath = os.path.join(AUDIO, filepath)
         self.audio = None
         self.data = None
         self.chunk = 2048
@@ -31,7 +31,7 @@ class WavToMouth():
         self.rate = rospy.Rate(30) # 100hz
 
     def _read_data_of_audio(self):
-        self.audio = wave.open(self.filename, "rb")
+        self.audio = wave.open(self.filepath, "rb")
         self.data = self.audio.readframes(self.chunk)
 
     def _convert_data_to_angle(self):
