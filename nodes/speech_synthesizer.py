@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # coding: utf-8
-from butia_speech.srv import *
-from std_msgs.msg import Bool
+from butia_speech.srv import AudioPlayer, SynthesizeSpeech, SynthesizeSpeechResponse
+from std_msgs.msg import Bool, String
 from espnet2.bin.tts_inference import Text2Speech
 from espnet2.utils.types import str_or_none
 from scipy.io import wavfile
-from pygame import mixer
 import os
-import time
 import torch
 import rospy
 import numpy as np
@@ -20,13 +18,26 @@ tag = 'kan-bayashi/ljspeech_vits'
 vocoder_tag = "none"
 
 def synthesize_speech(req):
+    try:
+        speech = req.data
+    except:
+        speech = req.text
+
     with torch.no_grad():
-        wav = text2speech(req.speech)["wav"]
+        wav = text2speech(speech)["wav"]
         wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
-    mixer.init()
-    mixer.music.load(FILENAME)
-    mixer.music.play()
-    return SynthesizeSpeechResponse(Bool(True))
+    
+    audio_player_service_param = rospy.get_param("services/audio_player/service", "/butia_speech/ap/audio_player")
+    rospy.wait_for_service(audio_player_service_param, timeout=rospy.Duration(10))
+    try:
+        audio_player = rospy.ServiceProxy(audio_player_service_param, AudioPlayer)
+        audio_player(FILENAME)
+    
+        return SynthesizeSpeechResponse(Bool(True))
+    except rospy.ServiceException as exc:
+        print("Service call failed: %s" % exc)
+        return SynthesizeSpeechResponse(Bool(False))
+
 
 if __name__ == '__main__':
     text2speech = Text2Speech.from_pretrained(
@@ -47,7 +58,12 @@ if __name__ == '__main__':
         noise_scale=0.333,
         noise_scale_dur=0.333,
     )
-    rospy.init_node('speech_synthesizer')
+    rospy.init_node('speech_synthesizer', anonymous=False)
+
+    say_something_subscriber_param = rospy.get_param("subscribers/butia_speech/topic", "/butia_speech/bs/say_something")
+    rospy.Subscriber(say_something_subscriber_param, String, callback=synthesize_speech)
+
     synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/ss/speech_synthesizer")
     rospy.Service(synthesizer_service_param, SynthesizeSpeech, synthesize_speech)
+    
     rospy.spin()
