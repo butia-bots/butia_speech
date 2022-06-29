@@ -48,6 +48,6 @@ if __name__ == '__main__':
         noise_scale_dur=0.333,
     )
     rospy.init_node('speech_synthesizer')
-    synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/bs/speech_synthesizer")
+    synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/ss/speech_synthesizer")
     rospy.Service(synthesizer_service_param, SynthesizeSpeech, synthesize_speech)
     rospy.spin()

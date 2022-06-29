@@ -18,3 +18,6 @@ services:
 
   speech_sythesizer:
     service: "/butia_speech/ss/speech_synthesizer"
+
+  audio_player:
+    service: "/butia_speech/ap/audio_player"
