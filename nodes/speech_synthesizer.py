@@ -14,9 +14,6 @@ import rospkg
 AUDIO_DIR = os.path.join(rospkg.RosPack().get_path("butia_speech"), "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
-tag = 'kan-bayashi/ljspeech_vits'
-vocoder_tag = "none"
-
 def synthesize_speech(req):
     try:
         speech = req.data
@@ -40,24 +37,23 @@ def synthesize_speech(req):
 
 
 if __name__ == '__main__':
-    text2speech = Text2Speech.from_pretrained(
-        model_tag=str_or_none(tag),
-        vocoder_tag=str_or_none(vocoder_tag),
-        device="cpu",
-        # Only for Tacotron 2 & Transformer
-        threshold=0.5,
-        # Only for Tacotron 2
-        minlenratio=0.0,
-        maxlenratio=10.0,
-        use_att_constraint=False,
-        backward_window=1,
-        forward_window=3,
-        # Only for FastSpeech & FastSpeech2 & VITS
-        speed_control_alpha=1.0,
-        # Only for VITS
-        noise_scale=0.333,
-        noise_scale_dur=0.333,
-    )
+
+    tag = rospy.get_param("butia_speech_synthesizer/tag", "kan-bayashi/ljspeech_vits")
+    vocoder_tag = rospy.get_param("butia_speech_synthesizer/vocoder_tag", "none")
+
+    text2speech = Text2Speech.from_pretrained(model_tag=str_or_none(tag),
+                                              vocoder_tag=str_or_none(vocoder_tag),
+                                              device="cpu",
+                                              threshold=0.5,
+                                              minlenratio=0.0,
+                                              maxlenratio=10.0,
+                                              use_att_constraint=False,
+                                              backward_window=1,
+                                              forward_window=3,
+                                              speed_control_alpha=1.0,
+                                              noise_scale=0.333,
+                                              noise_scale_dur=0.333,
+                                            )
     rospy.init_node('speech_synthesizer', anonymous=False)
 
     say_something_subscriber_param = rospy.get_param("subscribers/butia_speech/topic", "/butia_speech/bs/say_something")
