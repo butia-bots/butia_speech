@@ -1,3 +1,5 @@
 espnet
 espnet_model_zoo
 pygame
+pvporcupine
+pvrecorder
