@@ -3,14 +3,21 @@
 import os
 import rospy
 
+from std_msgs.msg import Bool
 from butia_speech.wav_to_mouth import WavToMouth
-from butia_speech.srv import AudioPlayer
+from butia_speech.srv import AudioPlayer, AudioPlayerResponse
 
 def toTalk(req):
     filepath = req.audio_path
     
-    wm = WavToMouth(filepath=filepath)
-    wm.read_audio()
+    try:
+        wm = WavToMouth(filepath=filepath)
+        wm.read_audio()
+        return AudioPlayerResponse(Bool(True))
+    except rospy.ServiceException as exc:
+        print("Service exception - AudioPlayer.")
+        return AudioPlayerResponse(Bool(False))
+
 
 if __name__ == "__main__":
     rospy.init_node("audio_player", anonymous=False)
