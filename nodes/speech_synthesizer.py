@@ -48,7 +48,7 @@ if __name__ == '__main__':
                                               use_att_constraint=False,
                                               backward_window=1,
                                               forward_window=3,
-                                              speed_control_alpha=1.0,
+                                              speed_control_alpha=1.15,
                                               noise_scale=0.333,
                                               noise_scale_dur=0.333,
                                             )
