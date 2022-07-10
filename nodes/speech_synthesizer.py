@@ -23,7 +23,7 @@ def synthesize_speech(req):
         wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
     
     audio_player_service_param = rospy.get_param("services/audio_player/service", "/butia_speech/ap/audio_player")
-    rospy.wait_for_service(audio_player_service_param, timeout=rospy.Duration(10))
+    rospy.wait_for_service(audio_player_service_param)
     try:
         audio_player = rospy.ServiceProxy(audio_player_service_param, AudioPlayer)
         audio_player(FILENAME)

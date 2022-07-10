@@ -1,8 +1,10 @@
 <?xml version="1.0" ?>
 <launch>
 
+    <arg name="output" default="screen"/>
+
     <rosparam file="$(find butia_speech)/config/butia_hotword_detection.yaml" command="load"/>
 
-    <node name="detector_hotword_node" pkg="butia_speech" type="detector_hotword_node.py"/>
+    <node name="detector_hotword_node" pkg="butia_speech" type="detector_hotword_node.py" output="$(arg output)"/>
 
 </launch>

@@ -4,6 +4,7 @@ import struct
 import numpy as np
 import pyaudio
 import rospkg
+import rospy
 
 #PACK_DIR = rospkg.RosPack().get_path('butia_hotword_detection')
 #sys.path.append(os.path.join(PACK_DIR, '/include/binding'))
@@ -41,9 +42,10 @@ class DetectHotWord():
             recorded_frames = []
             recorded_frames.append(pcm)
             result = self.handle.process(pcm)
+            
             if result >= 0:
-                return True
-        return False
+                return True, result
+        return False, ""
 
     def __del__(self):
         self.mic.close()

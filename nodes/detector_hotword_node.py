@@ -5,7 +5,7 @@ import rospkg
 
 from butia_speech.detect_hotword import DetectHotWord
 
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, String
 
 PACK_DIR = rospkg.RosPack().get_path('butia_speech')
 
@@ -21,11 +21,19 @@ if __name__ == '__main__':
     detector_publisher_param = rospy.get_param("publishers/butia_hotword_detection/topic","/butia_speech/bhd/detected")
     detector_subscriber_param = rospy.get_param("subscribers/butia_hotword_detection/topic","/butia_speech/bhd/hot_word")
     detector_publisher = rospy.Publisher(detector_publisher_param, Empty, queue_size=1)
+    detector_publisher_hotword = rospy.Publisher("hotword_detected", String, queue_size=1)
 
     detector = DetectHotWord(keyword, sensibility)
 
     detector.hear()
     while not rospy.is_shutdown():
-        result = detector.process()
+        result, hotword_detected = detector.process()
+        hotword = String()
+        if hotword_detected == 0:
+            hotword.data = "Hello Doris"
+            detector_publisher_hotword.publish(hotword)
+        if hotword_detected == 1:
+            hotword.data = "Follow me"
+            detector_publisher_hotword.publish(hotword)
         if result:
             detector_publisher.publish(Empty())
