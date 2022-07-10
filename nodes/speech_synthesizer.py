@@ -15,10 +15,8 @@ AUDIO_DIR = os.path.join(rospkg.RosPack().get_path("butia_speech"), "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 def synthesize_speech(req):
-    try:
-        speech = req.data
-    except:
-        speech = req.text
+    speech = req.text
+    lang = req.lang
 
     with torch.no_grad():
         wav = text2speech(speech)["wav"]
@@ -56,10 +54,10 @@ if __name__ == '__main__':
                                             )
     rospy.init_node('speech_synthesizer', anonymous=False)
 
-    say_something_subscriber_param = rospy.get_param("subscribers/butia_speech/topic", "/butia_speech/bs/say_something")
-    rospy.Subscriber(say_something_subscriber_param, String, callback=synthesize_speech)
+    say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
+    rospy.Subscriber(say_something_subscriber_param, SynthesizeSpeech, callback=synthesize_speech)
 
-    synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/ss/speech_synthesizer")
+    synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/ss/say_something")
     rospy.Service(synthesizer_service_param, SynthesizeSpeech, synthesize_speech)
     
     rospy.spin()

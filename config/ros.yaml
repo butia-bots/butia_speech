@@ -8,8 +8,8 @@ subscribers:
   butia_hotword_detection:
     topic: "/butia_speech/bhd/hot_word"
 
-  butia_speech:
-    topic: "/butia_speech/bs/say_something"
+  speech_synthesizer:
+    topic: "/butia_speech/ss/say_something"
 
 services:
 
@@ -17,7 +17,7 @@ services:
     service: "/butia_speech/sr/speech_recognizer"
 
   speech_sythesizer:
-    service: "/butia_speech/ss/speech_synthesizer"
+    service: "/butia_speech/ss/say_something"
 
   audio_player:
     service: "/butia_speech/ap/audio_player"

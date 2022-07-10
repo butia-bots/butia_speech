@@ -9,11 +9,19 @@ import rospkg
 #sys.path.append(os.path.join(PACK_DIR, '/include/binding'))
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../include/binding/'))
-from porcupine import Porcupine
+# from porcupine import Porcupine
+import pvporcupine
+
+access_key="6l8euC29yXEY7UTvBoOhiE9wYAWIZx/1Bzo8neP0nyPt43ruLLp7fg==" 
 
 class DetectHotWord():
-    def __init__(self, library_path, model_path, keyword_path, sensitivity):
-        self.handle = Porcupine(library_path, model_path, keyword_file_path=keyword_path, sensitivity=sensitivity)
+    def __init__(self, keyword_path, sensitivity, library_path=None, model_path=None):
+        if library_path is None:
+            library_path = pvporcupine.LIBRARY_PATH
+        if model_path is None:
+            model_path = pvporcupine.MODEL_PATH
+
+        self.handle = pvporcupine.create(access_key=access_key, model_path=model_path, keyword_paths=keyword_path, sensitivities=sensitivity)
         self.mic = None
 
     def hear(self):
@@ -33,7 +41,7 @@ class DetectHotWord():
             recorded_frames = []
             recorded_frames.append(pcm)
             result = self.handle.process(pcm)
-            if result:
+            if result >= 0:
                 return True
         return False
 
