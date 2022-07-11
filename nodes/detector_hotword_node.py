@@ -21,7 +21,7 @@ if __name__ == '__main__':
     detector_publisher_param = rospy.get_param("publishers/butia_hotword_detection/topic","/butia_speech/bhd/detected")
     detector_subscriber_param = rospy.get_param("subscribers/butia_hotword_detection/topic","/butia_speech/bhd/hot_word")
     detector_publisher = rospy.Publisher(detector_publisher_param, Empty, queue_size=1)
-    detector_publisher_hotword = rospy.Publisher("hotword_detected", String, queue_size=1)
+    detector_publisher_hotword = rospy.Publisher("/butia_speech/bhd/hotword_detected", String, queue_size=1)
 
     detector = DetectHotWord(keyword, sensibility)
 
