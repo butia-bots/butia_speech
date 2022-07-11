@@ -4,7 +4,7 @@ import os
 import rospy
 
 from butia_speech.wav_to_mouth import WavToMouth
-from butia_speech.srv import AudioPlayer
+from butia_speech.srv import AudioPlayer, AudioPlayerResponse
 
 def toTalk(req):
     filepath = req.audio_path
