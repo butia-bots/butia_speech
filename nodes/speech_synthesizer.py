@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # coding: utf-8
 from butia_speech.srv import AudioPlayer, SynthesizeSpeech, SynthesizeSpeechResponse
-from std_msgs.msg import Bool, String
+from butia_speech.msg import SynthesizeSpeechMessage
+from std_msgs.msg import Bool
+
 from espnet2.bin.tts_inference import Text2Speech
 from espnet2.utils.types import str_or_none
 from scipy.io import wavfile
@@ -55,7 +57,7 @@ if __name__ == '__main__':
     rospy.init_node('speech_synthesizer', anonymous=False)
 
     say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
-    rospy.Subscriber(say_something_subscriber_param, String, callback=synthesize_speech)
+    rospy.Subscriber(say_something_subscriber_param, SynthesizeSpeechMessage, callback=synthesize_speech)
 
     synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/ss/say_something")
     rospy.Service(synthesizer_service_param, SynthesizeSpeech, synthesize_speech)
