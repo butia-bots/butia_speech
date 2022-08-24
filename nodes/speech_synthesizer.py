@@ -18,7 +18,7 @@ FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 def synthesize_speech(req):
     speech = req.text
-    lang = req.lang
+    lang = "en" # lang = req.lang
 
     with torch.no_grad():
         wav = text2speech(speech)["wav"]
