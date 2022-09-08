@@ -5,19 +5,28 @@ from butia_speech.srv import SpeechToText, SpeechToTextResponse
 from speech_recognition import Microphone, Recognizer, WaitTimeoutError, AudioData
 import os
 import numpy as np
-from espnet_model_zoo.downloader import ModelDownloader
-from espnet2.bin.asr_inference import Speech2Text
-
-tag = 'Shinji Watanabe/spgispeech_asr_train_asr_conformer6_n_fft512_hop_length256_raw_en_unnorm_bpe5000_valid.acc.ave'
+from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
+import torch
 
 def handle_recognition(req):
     with Microphone(sample_rate=16000) as source:
-        recognizer.adjust_for_ambient_noise(source, duration=0.5)
+        #recognizer.adjust_for_ambient_noise(source, duration=0.5)
         try:
-            audio = recognizer.listen(source, phrase_time_limit=10, timeout=3)
+            #audio = recognizer.listen(source, phrase_time_limit=10, timeout=3)
+            audio = recognizer.listen(source)
+            
             fs = audio.sample_rate
             audio = np.frombuffer(audio.frame_data, np.int16)
-            text, *_ = speech2text(audio)[0]
+            # tokenize
+            input_values = processor(audio.reshape((1,-1)), return_tensors="pt", padding="longest").input_values  # Batch size 1
+            
+            # retrieve logits
+            logits = model(input_values).logits
+            
+            # take argmax and decode
+            predicted_ids = torch.argmax(logits, dim=-1)
+            transcription = processor.batch_decode(predicted_ids)
+            text = transcription[0]
         except WaitTimeoutError:
             text = ''
     return SpeechToTextResponse(
@@ -25,17 +34,8 @@ def handle_recognition(req):
     )
 
 if __name__ == '__main__':
-    d = ModelDownloader()
-    speech2text = Speech2Text(
-        **d.download_and_unpack(tag),
-        device="cpu", # cuda
-        minlenratio=0.0,
-        maxlenratio=0.0,
-        ctc_weight=0.3,
-        beam_size=10,
-        batch_size=0,
-        nbest=1
-    )
+    processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-large-960h-lv60")
+    model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-large-960h-lv60")
     recognizer = Recognizer()
     rospy.init_node('speech_recognizer')
     
