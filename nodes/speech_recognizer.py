@@ -39,7 +39,7 @@ if __name__ == '__main__':
     recognizer = Recognizer()
     rospy.init_node('speech_recognizer')
     
-    recognizer_service_param = rospy.get_param("/services/speech_recognizer/service", "/butia_speech/bs/speech_recognizer")
+    recognizer_service_param = rospy.get_param("/services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
 
     recognition_service = rospy.Service(recognizer_service_param, SpeechToText, handle_recognition)
     rospy.spin()
