@@ -21,7 +21,7 @@ def handle_recognition(req):
             input_values = processor(audio.reshape((1,-1)), return_tensors="pt", padding="longest").input_values  # Batch size 1
             
             # retrieve logits
-            logits = model(input_values).logits
+            logits = model(input_values[0]).logits
             
             # take argmax and decode
             predicted_ids = torch.argmax(logits, dim=-1)
