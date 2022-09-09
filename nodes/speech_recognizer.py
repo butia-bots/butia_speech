@@ -27,14 +27,14 @@ def handle_recognition(req):
             if online_preference:
                 try:
                     text = recognizer.recognize_google(audio)
-                except RequestError:
+                except (UnknownValueError, RequestError):
                     text = ''
         
             if text == '':
                 with open(FILENAME, 'wb') as f:
                     f.write(audio.get_wav_data())
                 text = asr_pipeline(FILENAME)['text'].lower()
-        except (UnknownValueError, WaitTimeoutError):
+        except WaitTimeoutError:
             text = ''
     return SpeechToTextResponse(
         text=text
