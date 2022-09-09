@@ -2,4 +2,4 @@
 __pycache__
 *.pbmm
 *.scorer
-audios/
+*speech_input.wav
