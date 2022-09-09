@@ -2,27 +2,26 @@
 
 import rospy
 import rospkg
-from std_srvs.srv import Empty, EmptyResponse
 from butia_speech.srv import SpeechToText, SpeechToTextResponse
 from speech_recognition import Microphone, Recognizer, WaitTimeoutError, AudioData
 import os
 import numpy as np
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC, pipeline
-import torch
+from playsound import playsound
 
 AUDIO_DIR = os.path.join(rospkg.RosPack().get_path("butia_speech"), "audios/")
-FILENAME = str(AUDIO_DIR) + "speech_input.wav"
-
-def handle_adjust_noise(req):
-    with Microphone(sample_rate=16000) as source:
-        recognizer.adjust_for_ambient_noise(source, duration=1)
-    return EmptyResponse()
+FILENAME = os.path.join(AUDIO_DIR, "speech_input.wav")
+TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 
 def handle_recognition(req):
     with Microphone(sample_rate=16000) as source:
-        #recognizer.adjust_for_ambient_noise(source, duration=0.5)
+        recognizer.adjust_for_ambient_noise(source, duration=1)
+
+    playsound(TALK_AUDIO, block=True)
+
+    with Microphone(sample_rate=16000) as source:
         try:
-            audio = recognizer.listen(source, phrase_time_limit=20, timeout=3)
+            audio = recognizer.listen(source, phrase_time_limit=20, timeout=5)
             # audio = recognizer.listen(source)
             
             #fs = audio.sample_rate
@@ -56,8 +55,6 @@ if __name__ == '__main__':
     rospy.init_node('speech_recognizer')
     
     recognizer_service_param = rospy.get_param("/services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
-    adjust_noise_param = rospy.get_param("/services/adjust_noise/service", "/butia_speech/sr/adjust_noise")
 
     recognition_service = rospy.Service(recognizer_service_param, SpeechToText, handle_recognition)
-    adjust_noise_service = rospy.Service(adjust_noise_param, Empty, handle_adjust_noise)
     rospy.spin()
