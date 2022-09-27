@@ -6,4 +6,4 @@ pvrecorder
 transformers
 SpeechRecognition
 playsound
-
+termcolor

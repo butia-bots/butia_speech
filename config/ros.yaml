@@ -21,3 +21,5 @@ services:
 
   audio_player:
     service: "/butia_speech/ap/audio_player"
+
+warnings: False
