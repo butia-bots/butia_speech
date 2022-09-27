@@ -7,6 +7,12 @@ from butia_speech.detect_hotword import DetectHotWord
 
 from std_msgs.msg import Empty
 
+from termcolor import colored
+import warnings
+warning = rospy.get_param("warnings", False)
+if not warning:
+    warnings.filterwarnings("ignore")
+
 PACK_DIR = rospkg.RosPack().get_path('butia_speech')
 
 if __name__ == '__main__':
