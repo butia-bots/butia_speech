@@ -13,6 +13,12 @@ import rospy
 import numpy as np
 import rospkg
 
+from termcolor import colored
+import warnings
+warning = rospy.get_param("warnings", False)
+if not warning:
+    warnings.filterwarnings("ignore")
+
 AUDIO_DIR = os.path.join(rospkg.RosPack().get_path("butia_speech"), "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
@@ -62,4 +68,5 @@ if __name__ == '__main__':
     synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/ss/say_something")
     rospy.Service(synthesizer_service_param, SynthesizeSpeech, synthesize_speech)
     
+    print(colored("Speech Synthesizer is on!", "green"))
     rospy.spin()

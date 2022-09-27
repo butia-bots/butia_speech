@@ -9,6 +9,12 @@ import numpy as np
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC, pipeline
 from playsound import playsound
 
+from termcolor import colored
+import warnings
+warning = rospy.get_param("warnings", False)
+if not warning:
+    warnings.filterwarnings("ignore")
+
 AUDIO_DIR = os.path.join(rospkg.RosPack().get_path("butia_speech"), "audios/")
 FILENAME = os.path.join(AUDIO_DIR, "speech_input.wav")
 TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
@@ -48,7 +54,9 @@ if __name__ == '__main__':
     rospy.init_node('speech_recognizer')
     
     recognizer_service_param = rospy.get_param("~services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
-    online_preference = rospy.get_param("~online_preference", True)
+    online_preference = rospy.get_param("~online_preference", False)
 
     recognition_service = rospy.Service(recognizer_service_param, SpeechToText, handle_recognition)
+
+    print(colored("Speech Recognizer is on!", "green"))
     rospy.spin()
