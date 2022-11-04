@@ -22,13 +22,27 @@ if not warning:
 AUDIO_DIR = os.path.join(rospkg.RosPack().get_path("butia_speech"), "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
+def speak_in_english(speech):
+    with torch.no_grad():
+        wav = text2speech_english(speech)["wav"]
+        wavfile.write(FILENAME, text2speech_english.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
+
+def speak_in_portuguese(speech):
+    with torch.no_grad():
+        wav = text2speech_portuguese(speech)["wav"]
+        wavfile.write(FILENAME, text2speech_portuguese.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
+
 def synthesize_speech(req):
     speech = req.text
-    lang = "en" # lang = req.lang
+    try:
+        lang = req.lang
+    except:
+        lang = "en"
 
-    with torch.no_grad():
-        wav = text2speech(speech)["wav"]
-        wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
+    if lang == "pt":
+        speak_in_portuguese(speech)
+    else:
+        speak_in_english(speech)
     
     audio_player_service_param = rospy.get_param("services/audio_player/service", "/butia_speech/ap/audio_player")
     rospy.wait_for_service(audio_player_service_param, timeout=rospy.Duration(10))
@@ -43,23 +57,38 @@ def synthesize_speech(req):
 
 
 if __name__ == '__main__':
+    print("Get model in english...")
+    text2speech_english = Text2Speech.from_pretrained(model_tag=str_or_none("kan-bayashi/ljspeech_vits"),
+                                                      vocoder_tag=str_or_none("none"),
+                                                      device="cpu",
+                                                      threshold=0.5,
+                                                      minlenratio=0.0,
+                                                      maxlenratio=10.0,
+                                                      use_att_constraint=False,
+                                                      backward_window=1,
+                                                      forward_window=3,
+                                                      speed_control_alpha=1.15,
+                                                      noise_scale=0.333,
+                                                      noise_scale_dur=0.333,
+                                                    )
+    print("Done.")
 
-    tag = rospy.get_param("butia_speech_synthesizer/tag", "kan-bayashi/ljspeech_vits")
-    vocoder_tag = rospy.get_param("butia_speech_synthesizer/vocoder_tag", "none")
+    print("Get model in portuguese...")
+    text2speech_portuguese = Text2Speech.from_pretrained(model_tag="espnet/pt_commonvoice_blstm",
+                                                        #  vocoder_tag="none",
+                                                        #  device="cpu",
+                                                        #  threshold=0.5,
+                                                        #  minlenratio=0.0,
+                                                        #  maxlenratio=10.0,
+                                                        #  use_att_constraint=False,
+                                                        #  backward_window=1,
+                                                        #  forward_window=3,
+                                                        #  speed_control_alpha=1.15,
+                                                        #  noise_scale=0.333,
+                                                        #  noise_scale_dur=0.333
+                                                        )
+    print("Done.")
 
-    text2speech = Text2Speech.from_pretrained(model_tag=str_or_none(tag),
-                                              vocoder_tag=str_or_none(vocoder_tag),
-                                              device="cpu",
-                                              threshold=0.5,
-                                              minlenratio=0.0,
-                                              maxlenratio=10.0,
-                                              use_att_constraint=False,
-                                              backward_window=1,
-                                              forward_window=3,
-                                              speed_control_alpha=1.15,
-                                              noise_scale=0.333,
-                                              noise_scale_dur=0.333,
-                                            )
     rospy.init_node('speech_synthesizer', anonymous=False)
 
     say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
