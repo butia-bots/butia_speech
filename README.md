@@ -66,7 +66,7 @@ rosrun butia_speech <node_name>.py
 ## License & Citation
 If you find this package useful, consider citing it using:
 ```
-@misc{butia_quiz,
+@misc{butia_speech,
     title={Butia Speech Package},
     author={{ButiaBots}},
     howpublished={\url{https://github.com/butia-bots/butia_speech/}},
