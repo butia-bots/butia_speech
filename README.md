@@ -63,7 +63,7 @@ rosrun butia_speech <node_name>.py
 
 * <node_name> available are: audio_player, detector_hotword_node, speech_recognizer, speech_synthesizer.
 
-## License & Citation
+## Citation
 If you find this package useful, consider citing it using:
 ```
 @misc{butia_speech,
