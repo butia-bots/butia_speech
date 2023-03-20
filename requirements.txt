@@ -7,3 +7,4 @@ transformers
 SpeechRecognition
 playsound
 termcolor
+audioplayer
