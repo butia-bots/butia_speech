@@ -49,6 +49,7 @@ def handle_recognition(req):
 if __name__ == '__main__':
     #processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-large-960h-lv60")
     #model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-large-960h-lv60")
+    print("**********************************************************")
     asr_pipeline = pipeline(task="automatic-speech-recognition", model="facebook/wav2vec2-large-960h-lv60")
     recognizer = Recognizer()
     rospy.init_node('speech_recognizer')
