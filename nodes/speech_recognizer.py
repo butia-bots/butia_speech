@@ -15,7 +15,8 @@ warning = rospy.get_param("warnings", False)
 if not warning:
     warnings.filterwarnings("ignore")
 
-AUDIO_DIR = os.path.join(rospkg.RosPack().get_path("butia_speech"), "audios/")
+PACK_DIR = rospkg.RosPack().get_path("butia_speech")
+AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = os.path.join(AUDIO_DIR, "speech_input.wav")
 TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 
@@ -50,7 +51,13 @@ if __name__ == '__main__':
     #processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-large-960h-lv60")
     #model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-large-960h-lv60")
     print("**********************************************************")
-    asr_pipeline = pipeline(task="automatic-speech-recognition", model="facebook/wav2vec2-large-960h-lv60")
+    try:
+        asr_pipeline = pipeline(task="automatic-speech-recognition", model=os.path.join(PACK_DIR, "include/model/facebook"))
+        print("************Local model loaded**************")
+    except:
+        print("************Local model failed, downloading from internet**************")
+        asr_pipeline = pipeline(task="automatic-speech-recognition", model="facebook/wav2vec2-large-960h-lv60")
+        asr_pipeline.save_pretrained(os.path.join(PACK_DIR, "include/model/facebook"))
     recognizer = Recognizer()
     rospy.init_node('speech_recognizer')
     
