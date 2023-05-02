@@ -12,6 +12,7 @@ import torch
 import rospy
 import numpy as np
 import rospkg
+import pickle
 
 from termcolor import colored
 import warnings
@@ -47,19 +48,8 @@ if __name__ == '__main__':
     tag = rospy.get_param("butia_speech_synthesizer/tag", "kan-bayashi/ljspeech_vits")
     vocoder_tag = rospy.get_param("butia_speech_synthesizer/vocoder_tag", "none")
     try:
-        text2speech = Text2Speech.from_pretrained(model_file=str_or_none(os.path.join(PACK_DIR, "include/model/total_count/train.total_count.ave_10best.pth")),
-                                                  vocoder_tag=str_or_none("none"),
-                                              device="cpu",
-                                              threshold=0.5,
-                                              minlenratio=0.0,
-                                              maxlenratio=10.0,
-                                              use_att_constraint=False,
-                                              backward_window=1,
-                                              forward_window=3,
-                                              speed_control_alpha=1.15,
-                                              noise_scale=0.333,
-                                              noise_scale_dur=0.333,
-                                            )
+        with open(os.path.join(PACK_DIR, "include/model/total_count/model.pkl"),'rb') as f:
+            text2speech = pickle.load(f)
         print("-------------Local model loaded-------------")
     except Exception as e:
         print(f"Failed to load local model error: {e}")
@@ -76,7 +66,10 @@ if __name__ == '__main__':
                                               noise_scale=0.333,
                                               noise_scale_dur=0.333,
                                             )
+        print(text2speech)
         print("-----------Download from internet----------------")
+        with open(os.path.join(PACK_DIR, "include/model/total_count/model.pkl"), 'wb') as f:
+            pickle.dump(text2speech, f)
     
     rospy.init_node('speech_synthesizer', anonymous=False)
 
