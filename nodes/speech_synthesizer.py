@@ -12,14 +12,15 @@ import torch
 import rospy
 import numpy as np
 import rospkg
+import pickle
 
 from termcolor import colored
 import warnings
 warning = rospy.get_param("warnings", False)
 if not warning:
     warnings.filterwarnings("ignore")
-
-AUDIO_DIR = os.path.join(rospkg.RosPack().get_path("butia_speech"), "audios/")
+PACK_DIR = rospkg.RosPack().get_path("butia_speech")
+AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 def synthesize_speech(req):
@@ -46,8 +47,13 @@ if __name__ == '__main__':
 
     tag = rospy.get_param("butia_speech_synthesizer/tag", "kan-bayashi/ljspeech_vits")
     vocoder_tag = rospy.get_param("butia_speech_synthesizer/vocoder_tag", "none")
-
-    text2speech = Text2Speech.from_pretrained(model_tag=str_or_none(tag),
+    try:
+        with open(os.path.join(PACK_DIR, "include/model/total_count/model.pkl"),'rb') as f:
+            text2speech = pickle.load(f)
+        print("-------------Local model loaded-------------")
+    except Exception as e:
+        print(f"Failed to load local model error: {e}")
+        text2speech = Text2Speech.from_pretrained(model_tag=str_or_none(tag),
                                               vocoder_tag=str_or_none(vocoder_tag),
                                               device="cpu",
                                               threshold=0.5,
@@ -60,6 +66,11 @@ if __name__ == '__main__':
                                               noise_scale=0.333,
                                               noise_scale_dur=0.333,
                                             )
+        print(text2speech)
+        print("-----------Download from internet----------------")
+        with open(os.path.join(PACK_DIR, "include/model/total_count/model.pkl"), 'wb') as f:
+            pickle.dump(text2speech, f)
+    
     rospy.init_node('speech_synthesizer', anonymous=False)
 
     say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
