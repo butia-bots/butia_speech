@@ -57,7 +57,7 @@ def handle_recognition(req):
                 prompt = prompt if has_param else None
                 
                 rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
-                text = recognizer.recognize_whisper(audio, 'small', language='en', initial_prompt=prompt).lower()
+                text = recognizer.recognize_whisper(audio, 'small.en', language='en', initial_prompt=prompt).lower()
                 #text = model.transcribe(FILENAME, no_speech_threshold=float('inf'), compression_ratio_threshold=float('inf'), initial_prompt=prompt)['text'].lower()
 
         except WaitTimeoutError:
