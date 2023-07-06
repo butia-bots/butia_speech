@@ -38,9 +38,28 @@ def handle_recognition(req):
                     text = ''
         
             if text == '':
-                with open(FILENAME, 'wb') as f:
-                    f.write(audio.get_wav_data())
-                text = asr_pipeline(FILENAME)['text'].lower()
+                #with open(FILENAME, 'wb') as f:
+                #    f.write(audio.get_wav_data())
+
+                names = rospy.get_param('/people_names', [])
+                drinks = rospy.get_param('/drink_names', [])
+
+                has_param = False
+                prompt = 'Just the words in the following list must be detected, that are: '
+                if len(names) > 0:
+                    prompt += ', '.join(names) + ', '
+                    has_param = True
+                if len(drinks) > 0:
+                    prompt += ', '.join(drinks) + ', '
+                    has_param = True
+                prompt += 'yes, no.'
+
+                prompt = prompt if has_param else None
+                
+                rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
+                text = recognizer.recognize_whisper(audio, 'small', language='en', initial_prompt=prompt).lower()
+                #text = model.transcribe(FILENAME, no_speech_threshold=float('inf'), compression_ratio_threshold=float('inf'), initial_prompt=prompt)['text'].lower()
+
         except WaitTimeoutError:
             text = ''
     return SpeechToTextResponse(
@@ -50,14 +69,17 @@ def handle_recognition(req):
 if __name__ == '__main__':
     #processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-large-960h-lv60")
     #model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-large-960h-lv60")
-    print("**********************************************************")
-    try:
-        asr_pipeline = pipeline(task="automatic-speech-recognition", model=os.path.join(PACK_DIR, "include/model/facebook"))
-        print("************Local model loaded**************")
-    except:
-        print("************Local model failed, downloading from internet**************")
-        asr_pipeline = pipeline(task="automatic-speech-recognition", model="facebook/wav2vec2-large-960h-lv60")
-        asr_pipeline.save_pretrained(os.path.join(PACK_DIR, "include/model/facebook"))
+    # print("**********************************************************")
+    # try:
+    #     asr_pipeline = pipeline(task="automatic-speech-recognition", model=os.path.join(PACK_DIR, "include/model/facebook"))
+    #     print("************Local model loaded**************")
+    # except:
+    #     print("************Local model failed, downloading from internet**************")
+    #     asr_pipeline = pipeline(task="automatic-speech-recognition", model="facebook/wav2vec2-large-960h-lv60")
+    #     asr_pipeline.save_pretrained(os.path.join(PACK_DIR, "include/model/facebook"))
+
+    #model = whisper.load_model("base.en")
+
     recognizer = Recognizer()
     rospy.init_node('speech_recognizer')
     
