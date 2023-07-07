@@ -41,17 +41,17 @@ def handle_recognition(req):
                 #with open(FILENAME, 'wb') as f:
                 #    f.write(audio.get_wav_data())
 
-                names = rospy.get_param('/people_names', [])
-                drinks = rospy.get_param('/drink_names', [])
+                prompts = rospy.get_param('/people_names', [])
+                prompts += rospy.get_param('/drink_names', [])
+                prompts += rospy.get_param('/location_names', [])
+                prompts += rospy.get_param('/object_names', [])
 
                 has_param = False
                 prompt = 'Just the words in the following list must be detected, that are: '
-                if len(names) > 0:
-                    prompt += ', '.join(names) + ', '
+                if len(prompts) > 0:
+                    prompt += ', '.join(prompts) + ', '
                     has_param = True
-                if len(drinks) > 0:
-                    prompt += ', '.join(drinks) + ', '
-                    has_param = True
+
                 prompt += 'yes, no.'
 
                 prompt = prompt if has_param else None
