@@ -10,3 +10,4 @@ termcolor
 audioplayer
 tensorflow==2.8
 ffmpeg
+nltk

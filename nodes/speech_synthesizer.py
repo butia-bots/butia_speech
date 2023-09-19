@@ -13,6 +13,7 @@ import rospy
 import numpy as np
 import rospkg
 import pickle
+from nltk.tokenize import sent_tokenize
 
 from termcolor import colored
 import warnings
@@ -27,19 +28,27 @@ def synthesize_speech(req):
     speech = req.text
     lang = "en" # lang = req.lang
 
-    with torch.no_grad():
-        wav = text2speech(speech)["wav"]
-        wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
-    
-    audio_player_service_param = rospy.get_param("services/audio_player/service", "/butia_speech/ap/audio_player")
-    rospy.wait_for_service(audio_player_service_param, timeout=rospy.Duration(10))
-    try:
-        audio_player = rospy.ServiceProxy(audio_player_service_param, AudioPlayer)
-        audio_player(FILENAME)
-    
+    sentences = sent_tokenize(speech)
+    success = True
+    for speech in sentences:
+        with torch.no_grad():
+            wav = text2speech(speech)["wav"]
+            wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
+        
+        audio_player_service_param = rospy.get_param("services/audio_player/service", "/butia_speech/ap/audio_player")
+        rospy.wait_for_service(audio_player_service_param, timeout=rospy.Duration(10))
+        try:
+            audio_player = rospy.ServiceProxy(audio_player_service_param, AudioPlayer)
+            audio_player(FILENAME)
+        
+            #return SynthesizeSpeechResponse(Bool(True))
+        except rospy.ServiceException as exc:
+            print("Service call failed: %s" % exc)
+            #return SynthesizeSpeechResponse(Bool(False))
+            success = False
+    if success:
         return SynthesizeSpeechResponse(Bool(True))
-    except rospy.ServiceException as exc:
-        print("Service call failed: %s" % exc)
+    else:
         return SynthesizeSpeechResponse(Bool(False))
 
 
