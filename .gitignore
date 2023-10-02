@@ -5,3 +5,4 @@ __pycache__
 *speech_input.wav
 include/model/facebook
 include/model/total_count
+*.pt

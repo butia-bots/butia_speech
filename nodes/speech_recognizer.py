@@ -16,6 +16,7 @@ if not warning:
     warnings.filterwarnings("ignore")
 
 PACK_DIR = rospkg.RosPack().get_path("butia_speech")
+RESOURCES_DIR = os.path.join(PACK_DIR, "resources")
 AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = os.path.join(AUDIO_DIR, "speech_input.wav")
 TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
@@ -28,7 +29,7 @@ def handle_recognition(req):
 
     with Microphone(sample_rate=16000) as source:
         try:
-            audio = recognizer.listen(source, phrase_time_limit=20, timeout=5)
+            audio = recognizer.listen(source, phrase_time_limit=8, timeout=5)
             text = ''
 
             if online_preference:
@@ -40,6 +41,8 @@ def handle_recognition(req):
             if text == '':
                 #with open(FILENAME, 'wb') as f:
                 #    f.write(audio.get_wav_data())
+
+                # TODO: everything here MUST be improved, it is just a code to make it to work quickly
 
                 prompts = rospy.get_param('/people_names', [])
                 prompts += rospy.get_param('/drink_names', [])
@@ -57,7 +60,8 @@ def handle_recognition(req):
                 prompt = prompt if has_param else None
                 
                 rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
-                text = recognizer.recognize_whisper(audio, 'small.en', language='en', initial_prompt=prompt).lower()
+                text = recognizer.recognize_whisper(audio, 'small.en', language='en', initial_prompt=prompt, 
+                                                    load_options={'download_root': RESOURCES_DIR, 'in_memory': True}).lower()
                 #text = model.transcribe(FILENAME, no_speech_threshold=float('inf'), compression_ratio_threshold=float('inf'), initial_prompt=prompt)['text'].lower()
 
         except WaitTimeoutError:
