@@ -22,6 +22,10 @@ if not warning:
 PACK_DIR = rospkg.RosPack().get_path("butia_speech")
 AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
+MODEL_DIR = os.path.join(PACK_DIR, "include/model/total_count/")
+MODEL_NAME = "model.pkl"
+MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
+
 
 def synthesize_speech(req):
     speech = req.text
@@ -47,8 +51,9 @@ if __name__ == '__main__':
 
     tag = rospy.get_param("butia_speech_synthesizer/tag", "kan-bayashi/ljspeech_vits")
     vocoder_tag = rospy.get_param("butia_speech_synthesizer/vocoder_tag", "none")
+    os.makedirs(MODEL_DIR, exist_ok=True)
     try:
-        with open(os.path.join(PACK_DIR, "include/model/total_count/model.pkl"),'rb') as f:
+        with open(os.path.join(PACK_DIR, MODEL_PATH),'rb') as f:
             text2speech = pickle.load(f)
         print("-------------Local model loaded-------------")
     except Exception as e:
@@ -68,7 +73,7 @@ if __name__ == '__main__':
                                             )
         print(text2speech)
         print("-----------Download from internet----------------")
-        with open(os.path.join(PACK_DIR, "include/model/total_count/model.pkl"), 'wb') as f:
+        with open(os.path.join(PACK_DIR, MODEL_PATH), 'wb') as f:
             pickle.dump(text2speech, f)
     
     rospy.init_node('speech_synthesizer', anonymous=False)
