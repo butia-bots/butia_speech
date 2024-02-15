@@ -22,7 +22,7 @@ if not warning:
 PACK_DIR = rospkg.RosPack().get_path("butia_speech")
 AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
-MODEL_DIR = "include/model/total_count"
+MODEL_DIR = os.path.join(PACK_DIR, "include/model/total_count/")
 MODEL_NAME = "model.pkl"
 MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
 
