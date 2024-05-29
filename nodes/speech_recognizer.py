@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import rospy
 import rospkg
@@ -21,48 +22,35 @@ AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = os.path.join(AUDIO_DIR, "speech_input.wav")
 TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 
+DEFAULT_LANGUAGE = 'en'
+
 def handle_recognition(req):
-    with Microphone(sample_rate=16000) as source:
-        recognizer.adjust_for_ambient_noise(source, duration=1)
+    with Microphone(sample_rate=sample_rate) as source:
+        recognizer.adjust_for_ambient_noise(source, duration=noise_adjust_duration)
 
     playsound(TALK_AUDIO, block=True)
 
-    with Microphone(sample_rate=16000) as source:
+    with Microphone(sample_rate=sample_rate) as source:
         try:
-            audio = recognizer.listen(source, phrase_time_limit=8, timeout=5)
-            text = ''
+            audio = recognizer.listen(source, phrase_time_limit=phrase_time_limit, timeout=timeout)
+            
+            prompt = req.prompt
+            lang = req.lang
 
-            if online_preference:
-                try:
-                    text = recognizer.recognize_google(audio)
-                except (UnknownValueError, RequestError):
-                    text = ''
-        
-            if text == '':
-                #with open(FILENAME, 'wb') as f:
-                #    f.write(audio.get_wav_data())
-
-                # TODO: everything here MUST be improved, it is just a code to make it to work quickly
-
-                prompts = rospy.get_param('/people_names', [])
-                prompts += rospy.get_param('/drink_names', [])
-                prompts += rospy.get_param('/location_names', [])
-                prompts += rospy.get_param('/object_names', [])
-
-                has_param = False
-                prompt = 'Just the words in the following list must be detected, that are: '
-                if len(prompts) > 0:
-                    prompt += ', '.join(prompts) + ', '
-                    has_param = True
-
-                prompt += 'yes, no.'
-
-                prompt = prompt if has_param else None
-                
-                rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
-                text = recognizer.recognize_whisper(audio, 'small.en', language='en', initial_prompt=prompt, 
-                                                    load_options={'download_root': RESOURCES_DIR, 'in_memory': True}).lower()
-                #text = model.transcribe(FILENAME, no_speech_threshold=float('inf'), compression_ratio_threshold=float('inf'), initial_prompt=prompt)['text'].lower()
+            if lang == '':
+                lang = DEFAULT_LANGUAGE
+            
+            model = whisper_model
+            if lang == 'en':
+                if not model.endswith('.en'):
+                    model = model + '.en'
+            else:
+                if model.endswith('.en'):
+                    model = model[:-3]
+            
+            rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
+            text = recognizer.recognize_whisper(audio, model, language=lang, initial_prompt=prompt, 
+                                                load_options={'download_root': RESOURCES_DIR, 'in_memory': True}).lower()
 
         except WaitTimeoutError:
             text = ''
@@ -71,26 +59,17 @@ def handle_recognition(req):
     )
 
 if __name__ == '__main__':
-    #processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-large-960h-lv60")
-    #model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-large-960h-lv60")
-    # print("**********************************************************")
-    # try:
-    #     asr_pipeline = pipeline(task="automatic-speech-recognition", model=os.path.join(PACK_DIR, "include/model/facebook"))
-    #     print("************Local model loaded**************")
-    # except:
-    #     print("************Local model failed, downloading from internet**************")
-    #     asr_pipeline = pipeline(task="automatic-speech-recognition", model="facebook/wav2vec2-large-960h-lv60")
-    #     asr_pipeline.save_pretrained(os.path.join(PACK_DIR, "include/model/facebook"))
-
-    #model = whisper.load_model("base.en")
-
     recognizer = Recognizer()
     rospy.init_node('speech_recognizer')
     
     recognizer_service_param = rospy.get_param("~services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
-    online_preference = rospy.get_param("~online_preference", False)
+    noise_adjust_duration = rospy.get_param("~noise_adjust_duration", 1)
+    whisper_model = rospy.get_param("~whisper_model", "small")
+    phrase_time_limit = rospy.get_param("~phrase_time_limit", 8)
+    timeout = rospy.get_param("~timeout", 5)
+    sample_rate = rospy.get_param("~sample_rate", 16000)
 
     recognition_service = rospy.Service(recognizer_service_param, SpeechToText, handle_recognition)
 
-    print(colored("Speech Recognizer is on!", "green"))
+    rospy.loginfo("Speech Recognizer is on!")
     rospy.spin()
