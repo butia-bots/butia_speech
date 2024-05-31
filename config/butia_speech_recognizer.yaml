@@ -1,1 +1,5 @@
-online_preference: False
+whisper_model: "small"
+noise_adjust_duration: 1
+phrase_time_limit: 8
+timeout: 5
+sample_rate: 16000
