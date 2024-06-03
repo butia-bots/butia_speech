@@ -2,7 +2,8 @@
 
 import rospy
 import rospkg
-from butia_speech.srv import AudioPlayerByData, AudioPlayerByDataRequest, SynthesizeSpeech, SynthesizeSpeechResponse, SynthesizeSpeechRequest
+from butia_speech.srv import AudioPlayerByData, AudioPlayerByDataRequest, SynthesizeSpeech, SynthesizeSpeechResponse, AudioStreamStart, AudioStreamStartRequest
+from std_srvs.srv import Empty
 from audio_common_msgs.msg import AudioData, AudioInfo
 from butia_speech.msg import SynthesizeSpeechMessage
 from std_msgs.msg import Bool
@@ -73,9 +74,14 @@ class XTTSSpeechSynthesizerNode:
     def __read_params(self):
         self.robot_name = rospy.get_param("robot_name", "BORIS").lower()
 
+        self.use_streaming = rospy.get_param("tts/use_streaming", False)
+
         self.speech_synthesizer_service_name = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/ss/say_something")
         self.speech_synthesizer_topic_name = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
         self.audio_player_by_data_service_name = rospy.get_param("services/audio_player_by_data/service", "/butia_speech/ap/audio_player_by_data")
+        self.stream_start_service_name = rospy.get_param("services/stream_start/service", "/butia_speech/ap/stream_start")
+        self.stream_stop_service_name = rospy.get_param("services/stream_stop/service", "/butia_speech/ap/stream_stop")
+        self.stream_data_topic_name = rospy.get_param("subscribers/stream_data/topic", "/butia_speech/ap/stream_data")
 
         self.tts_model_name = rospy.get_param("tts/model_name", "tts_models/multilingual/multi-dataset/xtts_v2")
         self.tts_config_file_name = rospy.get_param("tts/config_file_name", "config.json")
@@ -86,7 +92,9 @@ class XTTSSpeechSynthesizerNode:
     def __init_comm(self):
         self.speech_synthesizer_server = rospy.Service("/butia_speech/ss/say_something", SynthesizeSpeech, self.synthesize_speech)
         self.speech_synthesizer_subscriber = rospy.Subscriber("/butia_speech/ss/say_something", SynthesizeSpeechMessage, self.synthesize_speech)
-    
+
+        self.stream_publisher = rospy.Publisher(self.stream_data_topic_name, AudioData, queue_size=10)
+
     def __compute_voice_latents(self):
         robot_voices_dir = os.path.join(VOICES_DIR, self.robot_name)
         if not os.path.exists(robot_voices_dir):
@@ -106,38 +114,81 @@ class XTTSSpeechSynthesizerNode:
         rospy.logdebug("Synthesizing speech: " + text)
         rospy.logdebug("Language: " + lang)
 
-        out = self.tts_model.inference(
-            text,
-            lang,
-            self.voice_latents['gpt_cond_latent'],
-            self.voice_latents['speaker_embedding'],
-            temperature=self.tts_temperature,
-        )
-        wav = torch.tensor(out['wav'])
-        wav_data = (wav.view(-1).cpu().numpy()*32768).astype(np.int16)
+        import time
+        start = time.time()
+        if not self.use_streaming:
+            out = self.tts_model.inference(
+                text,
+                lang,
+                self.voice_latents['gpt_cond_latent'],
+                self.voice_latents['speaker_embedding'],
+                temperature=self.tts_temperature,
+            )
+            wav = torch.tensor(out['wav'])
+            wav_data = (wav.view(-1).cpu().numpy()*32768).astype(np.int16)
 
-        audio_data = AudioData()
-        audio_data.data = wav_data.tobytes()
-        audio_info = AudioInfo()
-        audio_info.sample_rate = self.sample_rate
-        audio_info.channels = 1
-        audio_info.sample_format = str(pyaudio.paInt16)
-        
-        rospy.wait_for_service(self.audio_player_by_data_service_name, timeout=rospy.Duration(10))
-        try:
-            audio_player = rospy.ServiceProxy(self.audio_player_by_data_service_name, AudioPlayerByData)
+            audio_data = AudioData()
+            audio_data.data = wav_data.tobytes()
+            audio_info = AudioInfo()
+            audio_info.sample_rate = self.sample_rate
+            audio_info.channels = 1
+            audio_info.sample_format = str(pyaudio.paInt16)
             
-            request = AudioPlayerByDataRequest()
-            request.data = audio_data
-            request.audio_info = audio_info
-            audio_player(request)
+            rospy.wait_for_service(self.audio_player_by_data_service_name, timeout=rospy.Duration(10))
+            try:
+                audio_player = rospy.ServiceProxy(self.audio_player_by_data_service_name, AudioPlayerByData)
+                
+                request = AudioPlayerByDataRequest()
+                request.data = audio_data
+                request.audio_info = audio_info
+                audio_player(request)
+            
+            except rospy.ServiceException as exc:
+                rospy.logerr("Service call failed: %s" % exc)
+                return SynthesizeSpeechResponse(Bool(False))
         
-            return SynthesizeSpeechResponse(Bool(True))
-        except rospy.ServiceException as exc:
-            rospy.logerr("Service call failed: %s" % exc)
-            return SynthesizeSpeechResponse(Bool(False))
+        else:
+            
+            rospy.wait_for_service(self.stream_start_service_name, timeout=rospy.Duration(10))
+            try:
+                stream_start = rospy.ServiceProxy(self.stream_start_service_name, AudioStreamStart)
+                request = AudioStreamStartRequest()
+                request.audio_info.sample_rate = self.sample_rate
+                request.audio_info.channels = 1
+                request.audio_info.sample_format = str(pyaudio.paInt16)
+                stream_start(request)
+            except rospy.ServiceException as exc:
+                rospy.logerr("Service call failed: %s" % exc)
+                return SynthesizeSpeechResponse(Bool(False))
 
-        need_response = True if isinstance(req, SynthesizeSpeechRequest) else False
+            chunks = self.tts_model.inference_stream(
+                    text,
+                    lang,
+                    self.voice_latents['gpt_cond_latent'],
+                    self.voice_latents['speaker_embedding'],
+                    temperature=self.tts_temperature,
+            )
+
+            for chunk in chunks:
+                wav_data = (chunk.view(-1).cpu().numpy()*32768).astype(np.int16)
+
+                audio_data = AudioData()
+                audio_data.data = wav_data.tobytes()
+
+                self.stream_publisher.publish(audio_data)
+
+            rospy.wait_for_service(self.stream_stop_service_name, timeout=rospy.Duration(10))
+            try:
+                stream_stop = rospy.ServiceProxy(self.stream_stop_service_name, Empty)
+                stream_stop()
+            except rospy.ServiceException as exc:
+                rospy.logerr("Service call failed: %s" % exc)
+                return SynthesizeSpeechResponse(Bool(False))
+        
+        print("========== Time elapsed: ", time.time() - start)
+
+        return SynthesizeSpeechResponse(Bool(True))
+ 
         
 if __name__ == '__main__':
     XTTSSpeechSynthesizerNode()

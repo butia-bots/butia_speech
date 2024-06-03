@@ -25,11 +25,15 @@ class WavToMouth():
 
         self.audio = None
         self.audio_info = None
+        self.stream = None
 
         self.output = Int16MultiArray()
         self.mouth_gain = rospy.get_param("mouth_gain", 2.5)
         self.angle_publisher = rospy.Publisher("mouth", Int16MultiArray, queue_size=1)
         self.mouth_debug_publisher = rospy.Publisher("mouth_debug", Int16, queue_size=1)
+
+        self.streaming = False
+        self.request_stream_stop = False
     
     def divide_audio_in_chunks(self, audio_data, num_bytes=2):
         chunks = []
@@ -42,6 +46,24 @@ class WavToMouth():
         self.audio = wave.open(self.filepath, "rb")
         audio_data = self.audio.readframes(self.audio.getnframes())
         self.data += self.divide_audio_in_chunks(audio_data, num_bytes=self.audio.getsampwidth())
+
+    def request_stop_stream(self):
+        self.request_stream_stop = True
+
+    def start_stream(self):
+        self.streaming = True
+        self.request_stream_stop = False
+    
+    def stop_stream(self):
+        self.streaming = False
+        self.output.data = [0, 100]
+        self.angle_publisher.publish(self.output)
+        self.stream.close()
+        self.p.terminate()
+
+    def set_audio_info(self, audio_info):
+        self.audio_info = audio_info
+        self._open_stream()
 
     def set_filepath(self, filepath):
         self.filepath = os.path.join(AUDIO, filepath)
@@ -84,8 +106,11 @@ class WavToMouth():
         rms_value = min(rms_value * gain, max_rms)
         return min(max(int((rms_value / max_rms) * 100), 0), 100)
 
+    def stream_data_callback(self, data):
+        self.data += self.divide_audio_in_chunks(data)
+
     def play_chunk(self):
-        if len(self.data) > 0:
+        if len(self.data) > 0 and self.stream is not None:
             data = self.data.pop(0)
 
             self.stream.write(data)
@@ -95,6 +120,9 @@ class WavToMouth():
             self.output.data = [mouth_angle, abs(100 - mouth_angle)]
             self.angle_publisher.publish(self.output)
             self.mouth_debug_publisher.publish(Int16(mouth_angle))
+            
+        elif self.streaming and self.request_stream_stop:
+            self.stop_stream()
 
     def play_all_data(self):
 
