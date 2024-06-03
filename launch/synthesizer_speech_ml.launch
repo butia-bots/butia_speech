@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<launch>
+    <rosparam file="$(find butia_speech)/config/ros.yaml" command="load"/>
+    <rosparam file="$(find butia_speech)/config/butia_speech_synthesizer_ml.yaml" command="load"/>
+    
+    <node name="audio_player" pkg="butia_speech" type="audio_player.py" output="screen"/>
+
+    <node name="speech_synthesizer" pkg="butia_speech" type="speech_synthesizer_ml.py" output="screen"/>
+
+</launch>
