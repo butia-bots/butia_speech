@@ -15,6 +15,8 @@ import warnings
 warning = rospy.get_param("warnings", False)
 warnings.filterwarnings("ignore")
 
+last_stream_data_timestamp = None
+
 wm = None
 
 def toTalk(req):
@@ -40,8 +42,11 @@ def toTalkByData(req):
     return AudioPlayerByDataResponse(Bool(True))
 
 def audioStreamStart(req):
+    global last_stream_data_timestamp
     if wm.streaming:
         return AudioStreamStartResponse(Bool(False))
+    
+    last_stream_data_timestamp = rospy.get_rostime()
     
     info = req.audio_info
     wm.set_audio_info(info)
@@ -51,7 +56,10 @@ def audioStreamStart(req):
     return AudioStreamStartResponse(Bool(True))
 
 def stop_stream(req):
+    global last_stream_data_timestamp
     wm.request_stop_stream()
+
+    last_stream_data_timestamp = None
 
     while wm.streaming:
         time.sleep(0.1)
@@ -59,7 +67,9 @@ def stop_stream(req):
     return EmptyResponse()
 
 def stream_data_callback(data):
+    global last_stream_data_timestamp
     if wm.streaming:
+        last_stream_data_timestamp = rospy.get_rostime()
         wm.stream_data_callback(data.data)
 
 if __name__ == "__main__":
@@ -82,9 +92,17 @@ if __name__ == "__main__":
     audio_player_stream_data_topic_param = rospy.get_param("subscribers/stream_data/topic", "/butia_speech/ap/stream_data")
     rospy.Subscriber(audio_player_stream_data_topic_param, AudioData, stream_data_callback)
 
+    stream_timeout = rospy.get_param("stream_timeout", 10)
+
     print(colored("Audio Player is on!", "green"))
     rate = rospy.Rate(30)
     while not rospy.is_shutdown():
         if wm.streaming:
+            if last_stream_data_timestamp is not None:
+                now = rospy.Time.now()
+                if now - last_stream_data_timestamp >= rospy.Duration(stream_timeout):
+                    rospy.loginfo('STREAM TIMEOUT')
+                    wm.request_stop_stream()
+                    last_stream_data_timestamp = None
             wm.play_chunk()
         rate.sleep()
