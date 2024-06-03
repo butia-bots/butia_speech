@@ -21,30 +21,30 @@ wm = None
 
 def toTalk(req):
     if wm.streaming:
-        return AudioPlayerResponse(Bool(False))
+        return AudioPlayerResponse(False)
 
     filepath = req.audio_path
     
     wm.set_filepath(filepath)
     wm.play_all_data()
 
-    return AudioPlayerResponse(Bool(True))
+    return AudioPlayerResponse(True)
         
 def toTalkByData(req):
     if wm.streaming:
-        return AudioPlayerByDataResponse(Bool(False))
+        return AudioPlayerByDataResponse(False)
     data = req.data.data
     info = req.audio_info
 
     wm.set_data_and_info(data, info)
     wm.play_all_data()
 
-    return AudioPlayerByDataResponse(Bool(True))
+    return AudioPlayerByDataResponse(True)
 
 def audioStreamStart(req):
     global last_stream_data_timestamp
     if wm.streaming:
-        return AudioStreamStartResponse(Bool(False))
+        return AudioStreamStartResponse(False)
     
     last_stream_data_timestamp = rospy.get_rostime()
     
@@ -53,7 +53,7 @@ def audioStreamStart(req):
 
     wm.start_stream()
 
-    return AudioStreamStartResponse(Bool(True))
+    return AudioStreamStartResponse(True)
 
 def stop_stream(req):
     global last_stream_data_timestamp

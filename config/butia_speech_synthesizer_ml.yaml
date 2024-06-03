@@ -7,3 +7,5 @@ tts:
   use_cuda: true
   temperature: 0.7
   use_streaming: true
+  speed: 1.0
+  enable_text_splitting: true

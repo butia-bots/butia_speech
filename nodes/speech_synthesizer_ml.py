@@ -12,6 +12,7 @@ import os
 from termcolor import colored
 import torch
 import numpy as np
+from scipy.io import wavfile
 
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
@@ -86,6 +87,8 @@ class XTTSSpeechSynthesizerNode:
         self.tts_use_deepspeed = rospy.get_param("tts/use_deepspeed", True)
         self.tts_use_cuda = rospy.get_param("tts/use_cuda", True)
         self.tts_temperature = rospy.get_param("tts/temperature", 0.7)
+        self.tts_speed = rospy.get_param("tts/speed", 1.0)
+        self.tts_enable_text_splitting = rospy.get_param("tts/enable_text_splitting", True)
 
     def __init_comm(self):
         self.speech_synthesizer_server = rospy.Service("/butia_speech/ss/say_something", SynthesizeSpeech, self.synthesize_speech)
@@ -109,21 +112,28 @@ class XTTSSpeechSynthesizerNode:
         text = req.text
         lang = req.lang if req.lang else "en"
 
+        use_streaming = self.use_streaming
+
+        if req.force_stream_mode:
+            use_streaming = True
+
         rospy.logdebug("Synthesizing speech: " + text)
         rospy.logdebug("Language: " + lang)
 
-        import time
-        start = time.time()
-        if not self.use_streaming:
+        if not use_streaming:
             out = self.tts_model.inference(
                 text,
                 lang,
                 self.voice_latents['gpt_cond_latent'],
                 self.voice_latents['speaker_embedding'],
                 temperature=self.tts_temperature,
+                speed=self.tts_speed,
+                enable_text_splitting=self.tts_enable_text_splitting,
             )
             wav = torch.tensor(out['wav'])
             wav_data = (wav.view(-1).cpu().numpy()*32768).astype(np.int16)
+
+            wavfile.write(FILENAME, self.sample_rate, wav_data)
 
             audio_data = AudioData()
             audio_data.data = wav_data.tobytes()
@@ -143,7 +153,7 @@ class XTTSSpeechSynthesizerNode:
             
             except rospy.ServiceException as exc:
                 rospy.logerr("Service call failed: %s" % exc)
-                return SynthesizeSpeechResponse(Bool(False))
+                return SynthesizeSpeechResponse(False)
         
         else:
             
@@ -157,7 +167,7 @@ class XTTSSpeechSynthesizerNode:
                 stream_start(request)
             except rospy.ServiceException as exc:
                 rospy.logerr("Service call failed: %s" % exc)
-                return SynthesizeSpeechResponse(Bool(False))
+                return SynthesizeSpeechResponse(False)
 
             chunks = self.tts_model.inference_stream(
                     text,
@@ -165,6 +175,8 @@ class XTTSSpeechSynthesizerNode:
                     self.voice_latents['gpt_cond_latent'],
                     self.voice_latents['speaker_embedding'],
                     temperature=self.tts_temperature,
+                    speed=self.tts_speed,
+                    enable_text_splitting=self.tts_enable_text_splitting,
             )
 
             for chunk in chunks:
@@ -181,9 +193,9 @@ class XTTSSpeechSynthesizerNode:
                 stream_stop()
             except rospy.ServiceException as exc:
                 rospy.logerr("Service call failed: %s" % exc)
-                return SynthesizeSpeechResponse(Bool(False))
+                return SynthesizeSpeechResponse(False)
         
-        return SynthesizeSpeechResponse(Bool(True))
+        return SynthesizeSpeechResponse(True)
  
 if __name__ == '__main__':
     XTTSSpeechSynthesizerNode()
