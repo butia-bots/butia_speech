@@ -84,7 +84,7 @@ class XTTSSpeechSynthesizerNode:
 
         self.tts_model_name = rospy.get_param("tts/model_name", "tts_models/multilingual/multi-dataset/xtts_v2")
         self.tts_config_file_name = rospy.get_param("tts/config_file_name", "config.json")
-        self.tts_use_deepspeed = rospy.get_param("tts/use_deepspeed", True)
+        self.tts_use_deepspeed = rospy.get_param("tts/use_deepspeed", False)
         self.tts_use_cuda = rospy.get_param("tts/use_cuda", True)
         self.tts_temperature = rospy.get_param("tts/temperature", 0.7)
         self.tts_speed = rospy.get_param("tts/speed", 1.0)
