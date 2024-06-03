@@ -10,10 +10,8 @@ from std_msgs.msg import Bool
 
 import os
 from termcolor import colored
-from scipy.io import wavfile
 import torch
 import numpy as np
-import pyaudio
 
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
@@ -132,7 +130,7 @@ class XTTSSpeechSynthesizerNode:
             audio_info = AudioInfo()
             audio_info.sample_rate = self.sample_rate
             audio_info.channels = 1
-            audio_info.sample_format = str(pyaudio.paInt16)
+            audio_info.sample_format = '8'
             
             rospy.wait_for_service(self.audio_player_by_data_service_name, timeout=rospy.Duration(10))
             try:
@@ -155,7 +153,7 @@ class XTTSSpeechSynthesizerNode:
                 request = AudioStreamStartRequest()
                 request.audio_info.sample_rate = self.sample_rate
                 request.audio_info.channels = 1
-                request.audio_info.sample_format = str(pyaudio.paInt16)
+                request.audio_info.sample_format = '8'
                 stream_start(request)
             except rospy.ServiceException as exc:
                 rospy.logerr("Service call failed: %s" % exc)

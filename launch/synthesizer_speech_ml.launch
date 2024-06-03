@@ -5,6 +5,8 @@
     <arg name="audio_player_machine" default="$(arg machine)"/>
     <arg name="use_machine" default="true"/>
 
+    <!-- <param name="robot_name" value="doris" /> -->
+
     <machine name="localhost" address="localhost" if="$(arg use_machine)"/>
 
     <rosparam file="$(find butia_speech)/config/ros.yaml" command="load"/>
