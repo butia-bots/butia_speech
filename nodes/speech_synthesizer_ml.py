@@ -185,11 +185,8 @@ class XTTSSpeechSynthesizerNode:
                 rospy.logerr("Service call failed: %s" % exc)
                 return SynthesizeSpeechResponse(Bool(False))
         
-        print("========== Time elapsed: ", time.time() - start)
-
         return SynthesizeSpeechResponse(Bool(True))
  
-        
 if __name__ == '__main__':
     XTTSSpeechSynthesizerNode()
     rospy.spin()
