@@ -1,10 +1,8 @@
 publishers:
-
   butia_hotword_detection:
     topic: "/butia_speech/bhd/detected"
 
 subscribers:
-
   butia_hotword_detection:
     topic: "/butia_speech/bhd/hot_word"
 
@@ -12,7 +10,6 @@ subscribers:
     topic: "/butia_speech/ss/say_something"
 
 services:
-
   speech_recognizer:
     service: "/butia_speech/sr/speech_recognizer"
 
@@ -21,5 +18,8 @@ services:
 
   audio_player:
     service: "/butia_speech/ap/audio_player"
+
+  audio_player_by_data:
+    service: "/butia_speech/ap/audio_player_by_data"
 
 warnings: False
