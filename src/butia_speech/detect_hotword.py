@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../include/binding/'
 # from porcupine import Porcupine
 import pvporcupine
 
-access_key="Zxa4Rm7aglRktA+6EmqzLi5pxr9VLbXaGrusL/yANd+KkSkDvv8tmw==" 
+access_key="wnQZbothVBsXUYgEpgWQJoUSrToRrbUizBl27kaHbU+KcvxhE7YNXA==" 
 
 class DetectHotWord():
     def __init__(self, keyword_path, sensitivity, library_path=None, model_path=None):
