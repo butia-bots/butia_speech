@@ -1,0 +1,3 @@
+audio_common_msgs/AudioInfo audio_info
+---
+bool success

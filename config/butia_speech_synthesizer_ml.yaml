@@ -1,0 +1,11 @@
+tts:
+  # "tts --list_models" to get a complete list of available models
+  # just working with xtts_v2 for now
+  model_name: tts_models/multilingual/multi-dataset/xtts_v2
+  config_file_name: config.json
+  use_deepspeed: false
+  use_cuda: true
+  temperature: 0.7
+  use_streaming: false
+  speed: 1.0
+  enable_text_splitting: true
