@@ -12,16 +12,16 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../include/binding/'
 # from porcupine import Porcupine
 import pvporcupine
 
-access_key="wnQZbothVBsXUYgEpgWQJoUSrToRrbUizBl27kaHbU+KcvxhE7YNXA==" 
+access_key="CDCzWBGwcp4g7wUrSQj1H1IWJMwh8UhV+zw7LiSCB46L8+0piJV5tw==" 
 
 class DetectHotWord():
     def __init__(self, keyword_path, sensitivity, library_path=None, model_path=None):
-        if library_path is None:
-            library_path = pvporcupine.LIBRARY_PATH
-        if model_path is None:
-            model_path = pvporcupine.MODEL_PATH
+        # if library_path is None:
+        #     library_path = pvporcupine.LIBRARY_PATH
+        # if model_path is None:
+        #     model_path = pvporcupine.MODEL_PATH
 
-        self.handle = pvporcupine.create(access_key=access_key, model_path=model_path, keyword_paths=keyword_path, sensitivities=sensitivity)
+        self.handle = pvporcupine.create(access_key=access_key, keyword_paths=keyword_path, sensitivities=sensitivity)
         self.mic = None
 
     def hear(self):
