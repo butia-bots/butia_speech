@@ -4,7 +4,7 @@
 import rospy
 import rospkg
 from butia_speech.srv import SpeechToText, SpeechToTextResponse
-from speech_recognition import Microphone, Recognizer, WaitTimeoutError, RequestError, UnknownValueError
+from speech_recognition import Microphone, Recognizer, WaitTimeoutError, RequestError, UnknownValueError, AudioFile
 import os
 import numpy as np
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC, pipeline
@@ -68,6 +68,11 @@ if __name__ == '__main__':
     phrase_time_limit = rospy.get_param("~phrase_time_limit", 8)
     timeout = rospy.get_param("~timeout", 5)
     sample_rate = rospy.get_param("~sample_rate", 16000)
+
+    with AudioFile(AUDIO_DIR + "/talk.wav") as source:
+        dummyAudio = recognizer.record(source)
+        recognizer.recognize_whisper(dummyAudio, whisper_model, language="en", initial_prompt="",
+                                     load_options={'download_root': RESOURCES_DIR, 'in_memory': True}).lower()
 
     recognition_service = rospy.Service(recognizer_service_param, SpeechToText, handle_recognition)
 
