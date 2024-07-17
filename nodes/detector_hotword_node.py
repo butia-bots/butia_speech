@@ -20,7 +20,8 @@ if __name__ == '__main__':
     
     sensibility = rospy.get_param("/butia_hotword_detection/sensibility", 0.5)
 
-    keyword = [PACK_DIR + '/resources/Hello-Doris_en_linux_v2_1_0.ppn', PACK_DIR + '/resources/Follow-me_en_linux_v2_1_0.ppn']
+    # keyword = [PACK_DIR + '/resources/Hello-Doris_en_linux_v2_1_0.ppn', PACK_DIR + '/resources/Follow-me_en_linux_v2_1_0.ppn']
+    keyword = [PACK_DIR + '/resources/hello-Boris_en_linux_v3_0_0.ppn', PACK_DIR + '/resources/Follow-me_en_linux_v3_0_0.ppn']
 
     sensibility = [sensibility]*len(keyword)
 

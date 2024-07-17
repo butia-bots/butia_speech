@@ -28,7 +28,7 @@ def handle_recognition(req):
     with Microphone(sample_rate=sample_rate) as source:
         recognizer.adjust_for_ambient_noise(source, duration=noise_adjust_duration)
 
-    playsound(TALK_AUDIO, block=True)
+    playsound(TALK_AUDIO, block=False)
 
     with Microphone(sample_rate=sample_rate) as source:
         try:
@@ -65,8 +65,8 @@ if __name__ == '__main__':
     recognizer_service_param = rospy.get_param("~services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
     noise_adjust_duration = rospy.get_param("~noise_adjust_duration", 1)
     whisper_model = rospy.get_param("~whisper_model", "small")
-    phrase_time_limit = rospy.get_param("~phrase_time_limit", 8)
-    timeout = rospy.get_param("~timeout", 5)
+    phrase_time_limit = rospy.get_param("~phrase_time_limit", 3)
+    timeout = rospy.get_param("~timeout", 3)
     sample_rate = rospy.get_param("~sample_rate", 16000)
 
     recognition_service = rospy.Service(recognizer_service_param, SpeechToText, handle_recognition)
