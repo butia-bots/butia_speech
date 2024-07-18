@@ -47,7 +47,7 @@ def handle_recognition(req):
             else:
                 if model.endswith('.en'):
                     model = model[:-3]
-            
+            rospy.logwarn("aqui vem")
             rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
             text = recognizer.recognize_whisper(audio, model, language=lang, initial_prompt=prompt, 
                                                 load_options={'download_root': RESOURCES_DIR, 'in_memory': True}).lower()

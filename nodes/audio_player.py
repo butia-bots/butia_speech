@@ -17,6 +17,9 @@ def toTalk(req):
     
     wm = WavToMouth(filepath=filepath)
     wm.read_audio()
+    response = AudioPlayerResponse()
+    response.success.data = True
+    return response
 
 if __name__ == "__main__":
     rospy.init_node("audio_player", anonymous=False)
