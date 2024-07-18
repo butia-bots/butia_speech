@@ -40,15 +40,27 @@ def synthesize_speech(req):
     try:
         audio_player = rospy.ServiceProxy(audio_player_service_param, AudioPlayer)
         audio_player(FILENAME)
+<<<<<<< HEAD
 
         response = SynthesizeSpeechResponse()
         response.success = True
         return response
+=======
+        msg = SynthesizeSpeechResponse()
+        msg.success.data = True
+        return msg
+>>>>>>> bf99cb3 (addind the attribute data to the response)
     except rospy.ServiceException as exc:
         response = SynthesizeSpeechResponse
         response.success = False
         print("Service call failed: %s" % exc)
+<<<<<<< HEAD
         return response
+=======
+        msg = SynthesizeSpeechResponse()
+        msg.success.data = False
+        return msg
+>>>>>>> bf99cb3 (addind the attribute data to the response)
 
 
 if __name__ == '__main__':

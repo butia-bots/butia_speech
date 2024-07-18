@@ -25,6 +25,7 @@ def toTalk(req):
 
     filepath = req.audio_path
     
+<<<<<<< HEAD
     wm.set_filepath(filepath)
     wm.play_all_data()
 
@@ -71,6 +72,13 @@ def stream_data_callback(data):
     if wm.streaming:
         last_stream_data_timestamp = rospy.get_rostime()
         wm.stream_data_callback(data.data)
+=======
+    wm = WavToMouth(filepath=filepath)
+    wm.read_audio()
+    response = AudioPlayerResponse()
+    response.success.data = True
+    return response
+>>>>>>> bf99cb3 (addind the attribute data to the response)
 
 if __name__ == "__main__":
     rospy.init_node("audio_player", anonymous=False)
