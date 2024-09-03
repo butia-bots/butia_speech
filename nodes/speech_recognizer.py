@@ -10,6 +10,11 @@ import numpy as np
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC, pipeline
 from playsound import playsound
 
+from RealtimeSTT import AudioToTextRecorder
+from colorama import Fore, Back, Style
+import colorama
+import os
+
 from termcolor import colored
 import warnings
 warning = rospy.get_param("warnings", False)
@@ -25,11 +30,67 @@ TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 DEFAULT_LANGUAGE = 'en'
 
 def handle_recognition(req):
-    with Microphone(sample_rate=sample_rate) as source:
-        recognizer.adjust_for_ambient_noise(source, duration=noise_adjust_duration)
+    '''with Microphone(sample_rate=sample_rate) as source:
+        recognizer.adjust_for_ambient_noise(source, duration=noise_adjust_duration)'''
 
     playsound(TALK_AUDIO, block=False)
+    
+    recorder_config = {
+        'spinner': False,
+        'model': 'large-v2',
+        'silero_sensitivity': 0.4,
+        'webrtc_sensitivity': 2,
+        'post_speech_silence_duration': 0.4,
+        'min_length_of_recording': 0,
+        'min_gap_between_recordings': 0,
+        'enable_realtime_transcription': True,
+        'realtime_processing_pause': 0.2,
+        'realtime_model_type': 'tiny',
+        'on_realtime_transcription_update': text_detected, 
+        'silero_deactivity_detection': True,
+    }
+    
+    print("Initializing RealtimeSTT test...")
 
+    colorama.init()
+
+    full_sentences = []
+    displayed_text = ""
+    
+    def clear_console():
+        os.system('clear' if os.name == 'posix' else 'cls')
+        
+    def text_detected(text):
+        global displayed_text
+        sentences_with_style = [
+            f"{Fore.YELLOW + sentence + Style.RESET_ALL if i % 2 == 0 else Fore.CYAN + sentence + Style.RESET_ALL} "
+            for i, sentence in enumerate(full_sentences)
+        ]
+        new_text = "".join(sentences_with_style).strip() + " " + text if len(sentences_with_style) > 0 else text
+
+        if new_text != displayed_text:
+            displayed_text = new_text
+            clear_console()
+            print(f"Language: {recorder.detected_language} (realtime: {recorder.detected_realtime_language})")
+            print(displayed_text, end="", flush=True)
+    
+    def process_text(text):
+        full_sentences.append(text)
+        text_detected("")
+    
+    with AudioToTextRecorder(**recorder_config) as recorder:
+        try:
+            recorder.text(process_text)
+            
+            prompt = req.prompt
+            lang = req.lang
+            rospy.logwarn("aqui vem")
+            rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
+            
+            text = displayed_text
+        except WaitTimeoutError:
+            text = ''
+    '''
     with Microphone(sample_rate=sample_rate) as source:
         try:
             audio = recognizer.listen(source, phrase_time_limit=phrase_time_limit, timeout=timeout)
@@ -54,6 +115,7 @@ def handle_recognition(req):
 
         except WaitTimeoutError:
             text = ''
+    '''
     return SpeechToTextResponse(
         text=text
     )
