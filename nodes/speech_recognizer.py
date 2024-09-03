@@ -35,26 +35,12 @@ def handle_recognition(req):
 
     playsound(TALK_AUDIO, block=False)
     
-    recorder_config = {
-        'spinner': False,
-        'model': 'large-v2',
-        'silero_sensitivity': 0.4,
-        'webrtc_sensitivity': 2,
-        'post_speech_silence_duration': 0.4,
-        'min_length_of_recording': 0,
-        'min_gap_between_recordings': 0,
-        'enable_realtime_transcription': True,
-        'realtime_processing_pause': 0.2,
-        'realtime_model_type': 'tiny',
-        'on_realtime_transcription_update': text_detected, 
-        'silero_deactivity_detection': True,
-    }
-    
     print("Initializing RealtimeSTT test...")
 
     colorama.init()
 
     full_sentences = []
+    global displayed_text
     displayed_text = ""
     
     def clear_console():
@@ -73,11 +59,27 @@ def handle_recognition(req):
             clear_console()
             print(f"Language: {recorder.detected_language} (realtime: {recorder.detected_realtime_language})")
             print(displayed_text, end="", flush=True)
+            #return displayed_text
     
     def process_text(text):
         full_sentences.append(text)
         text_detected("")
-    
+
+    recorder_config = {
+        'spinner': False,
+        'model': 'medium.en',
+        'silero_sensitivity': 0.6,
+        'webrtc_sensitivity': 1,
+        'post_speech_silence_duration': 0.5,
+        'min_length_of_recording': 0,
+        'min_gap_between_recordings': 0,
+        'enable_realtime_transcription': False,
+        'realtime_processing_pause': 0.1,
+        'realtime_model_type': 'tiny.en',
+        'on_realtime_transcription_update': text_detected, 
+        'silero_deactivity_detection': True,
+    }
+
     with AudioToTextRecorder(**recorder_config) as recorder:
         try:
             recorder.text(process_text)
