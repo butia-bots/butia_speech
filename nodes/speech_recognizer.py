@@ -4,7 +4,7 @@
 import rospy
 import rospkg
 from butia_speech.srv import SpeechToText, SpeechToTextResponse
-from speech_recognition import Microphone, Recognizer, WaitTimeoutError, RequestError, UnknownValueError
+#from speech_recognition import Microphone, Recognizer, WaitTimeoutError, RequestError, UnknownValueError
 import os
 import numpy as np
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC, pipeline
@@ -32,8 +32,6 @@ DEFAULT_LANGUAGE = 'en'
 def handle_recognition(req):
     '''with Microphone(sample_rate=sample_rate) as source:
         recognizer.adjust_for_ambient_noise(source, duration=noise_adjust_duration)'''
-
-    playsound(TALK_AUDIO, block=False)
     
     print("Initializing RealtimeSTT test...")
 
@@ -64,14 +62,18 @@ def handle_recognition(req):
     def process_text(text):
         full_sentences.append(text)
         text_detected("")
+    
+    
+    prompt = req.prompt
+    rospy.loginfo(f"prompt: {prompt}")
 
     recorder_config = {
         'spinner': False,
-        'model': 'medium.en',
+        'model': 'base.en',
         'silero_sensitivity': 0.6,
         'webrtc_sensitivity': 1,
-        'post_speech_silence_duration': 0.5,
-        'min_length_of_recording': 0,
+        'post_speech_silence_duration': 0.6,
+        'min_length_of_recording': 1,
         'min_gap_between_recordings': 0,
         'enable_realtime_transcription': False,
         'realtime_processing_pause': 0.1,
@@ -82,16 +84,19 @@ def handle_recognition(req):
 
     with AudioToTextRecorder(**recorder_config) as recorder:
         try:
-            recorder.text(process_text)
-            
-            prompt = req.prompt
-            lang = req.lang
+            start_time = rospy.Time.now()
             rospy.logwarn("aqui vem")
-            rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
+            playsound(TALK_AUDIO, block=False)
+            recorder.text(process_text)
+
+            rospy.logwarn(f"Tempo do recorder: {(rospy.Time.now() - start_time).to_sec()}")            
+            lang = req.lang
+            rospy.logwarn(f'Prompt to make easier the recognition: {prompt}')
             
             text = displayed_text
         except WaitTimeoutError:
             text = ''
+    rospy.loginfo(f"Audio reconhecido {text}")
     '''
     with Microphone(sample_rate=sample_rate) as source:
         try:
@@ -123,7 +128,7 @@ def handle_recognition(req):
     )
 
 if __name__ == '__main__':
-    recognizer = Recognizer()
+    #recognizer = Recognizer()
     rospy.init_node('speech_recognizer')
     
     recognizer_service_param = rospy.get_param("~services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")

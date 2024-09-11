@@ -1,5 +1,4 @@
 string prompt
-
 # https://github.com/openai/whisper/blob/main/whisper/tokenizer.py for list of languages
 string lang
 ---
