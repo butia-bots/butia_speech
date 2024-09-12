@@ -70,9 +70,9 @@ def handle_recognition(req):
     recorder_config = {
         'spinner': False,
         'model': 'base.en',
-        'silero_sensitivity': 0.6,
+        'silero_sensitivity': 0.7,
         'webrtc_sensitivity': 1,
-        'post_speech_silence_duration': 0.6,
+        'post_speech_silence_duration': 0.4,
         'min_length_of_recording': 1,
         'min_gap_between_recordings': 0,
         'enable_realtime_transcription': False,
