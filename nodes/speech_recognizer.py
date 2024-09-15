@@ -11,11 +11,8 @@ from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC, pipeline
 from playsound import playsound
 
 from RealtimeSTT import AudioToTextRecorder
-from colorama import Fore, Back, Style
-import colorama
 import os
 
-from termcolor import colored
 import warnings
 warning = rospy.get_param("warnings", False)
 if not warning:
@@ -30,97 +27,41 @@ TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 DEFAULT_LANGUAGE = 'en'
 
 def handle_recognition(req):
-    '''with Microphone(sample_rate=sample_rate) as source:
-        recognizer.adjust_for_ambient_noise(source, duration=noise_adjust_duration)'''
+    rospy.loginfo("Initializing RealtimeSTT test... \n")
 
-    playsound(TALK_AUDIO, block=False)
-    
-    print("Initializing RealtimeSTT test...")
-
-    colorama.init()
-
-    full_sentences = []
-    global displayed_text
-    displayed_text = ""
-    
-    def clear_console():
-        os.system('clear' if os.name == 'posix' else 'cls')
-        
-    def text_detected(text):
-        global displayed_text
-        sentences_with_style = [
-            f"{Fore.YELLOW + sentence + Style.RESET_ALL if i % 2 == 0 else Fore.CYAN + sentence + Style.RESET_ALL} "
-            for i, sentence in enumerate(full_sentences)
-        ]
-        new_text = "".join(sentences_with_style).strip() + " " + text if len(sentences_with_style) > 0 else text
-
-        if new_text != displayed_text:
-            displayed_text = new_text
-            clear_console()
-            print(f"Language: {recorder.detected_language} (realtime: {recorder.detected_realtime_language})")
-            print(displayed_text, end="", flush=True)
-            #return displayed_text
-    
-    def process_text(text):
-        full_sentences.append(text)
-        text_detected("")
+    if req.prompt != '':
+        rospy.loginfo(f'Prompt to make easier the recognition: {req.prompt}')
 
     recorder_config = {
+        'compute_type': 'float32',
         'spinner': False,
-        'model': 'medium.en',
+        'model': 'base.en',
+        'language': req.language if req.language != '' else DEFAULT_LANGUAGE,
         'silero_sensitivity': 0.6,
+        'device': "cuda",
         'webrtc_sensitivity': 1,
-        'post_speech_silence_duration': 0.5,
-        'min_length_of_recording': 0,
+        'post_speech_silence_duration': 0.2,
+        'min_length_of_recording': 0.5,
         'min_gap_between_recordings': 0,
         'enable_realtime_transcription': False,
-        'realtime_processing_pause': 0.1,
-        'realtime_model_type': 'tiny.en',
-        'on_realtime_transcription_update': text_detected, 
         'silero_deactivity_detection': True,
+        'on_recording_start': print("Starting Record..."),
+        'on_vad_detect_start': lambda: playsound(TALK_AUDIO),
+        'on_vad_detect_stop': lambda: print("Finished Listening..."),
+        'on_recording_stop': lambda: print("Processing..."),
     }
 
-    with AudioToTextRecorder(**recorder_config) as recorder:
+    try:
+        with AudioToTextRecorder(**recorder_config) as recorder:
+            text = recorder.text()
         try:
-            recorder.text(process_text)
-            
-            prompt = req.prompt
-            lang = req.lang
-            rospy.logwarn("aqui vem")
-            rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
-            
-            text = displayed_text
-        except WaitTimeoutError:
-            text = ''
-    '''
-    with Microphone(sample_rate=sample_rate) as source:
-        try:
-            audio = recognizer.listen(source, phrase_time_limit=phrase_time_limit, timeout=timeout)
-            
-            prompt = req.prompt
-            lang = req.lang
-
-            if lang == '':
-                lang = DEFAULT_LANGUAGE
-            
-            model = whisper_model
-            if lang == 'en':
-                if not model.endswith('.en'):
-                    model = model + '.en'
-            else:
-                if model.endswith('.en'):
-                    model = model[:-3]
-            rospy.logwarn("aqui vem")
-            rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
-            text = recognizer.recognize_whisper(audio, model, language=lang, initial_prompt=prompt, 
-                                                load_options={'download_root': RESOURCES_DIR, 'in_memory': True}).lower()
-
-        except WaitTimeoutError:
-            text = ''
-    '''
-    return SpeechToTextResponse(
-        text=text
-    )
+            AudioToTextRecorder.shutdown()
+        except:
+            pass
+    except Exception as e:
+        print(e)
+        text = ''
+    return text
 
 if __name__ == '__main__':
     recognizer = Recognizer()
