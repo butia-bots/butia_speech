@@ -1,5 +1,0 @@
-whisper_model: "small"
-noise_adjust_duration: 1
-phrase_time_limit: 3
-timeout: 3
-sample_rate: 16000
