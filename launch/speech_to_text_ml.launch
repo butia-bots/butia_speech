@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<launch>
+    <arg name="machine" default="localhost"/>
+    <arg name="speech_to_text_machine" default="$(arg machine)"/>
+    <arg name="use_machine" default="true"/>
+
+    <!-- <param name="robot_name" value="doris" /> -->
+
+    <machine name="localhost" address="localhost" if="$(arg use_machine)"/>
+
+	<node name="speech_recognizer" pkg="butia_speech" type="speech_recognizer.py" output="screen" machine="$(arg speech_to_text_machine)">
+		<rosparam file="$(find butia_speech)/config/ros.yaml" command="load"/>
+		<rosparam file="$(find butia_speech)/config/butia_speech_recognizer.yaml" command="load"/>
+	</node>
+</launch>
