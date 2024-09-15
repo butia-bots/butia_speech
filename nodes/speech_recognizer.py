@@ -32,8 +32,9 @@ def handle_recognition(req):
 
     if req.prompt != '':
         rospy.loginfo(f'Prompt to make easier the recognition: {req.prompt}')
+        configs.update({'initial_prompt': req.prompt})
 
-    config.update({
+    configs.update({
         'language': req.language if req.language != '' else DEFAULT_LANGUAGE,
         'on_recording_start': lambda: rospy.loginfo("Starting Record..."),
         'on_vad_detect_start': lambda: playsound(TALK_AUDIO),
