@@ -27,7 +27,7 @@ TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 DEFAULT_LANGUAGE = 'en'
 
 def handle_recognition(req):
-    configs = rospy.get_param("/stt_configs/")
+    configs = rospy.get_param("~stt_configs/")
     rospy.loginfo("Initializing RealtimeSTT test... \n")
 
     if req.prompt != '':
@@ -35,7 +35,7 @@ def handle_recognition(req):
         configs.update({'initial_prompt': req.prompt})
 
     configs.update({
-        'language': req.language if req.language != '' else DEFAULT_LANGUAGE,
+        'language': req.lang if req.lang != '' else DEFAULT_LANGUAGE,
         'on_recording_start': lambda: rospy.loginfo("Starting Record..."),
         'on_vad_detect_start': lambda: playsound(TALK_AUDIO),
         'on_vad_detect_stop': lambda: rospy.loginfo("Finished Listening..."),
