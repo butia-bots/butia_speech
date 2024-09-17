@@ -27,7 +27,7 @@ TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 DEFAULT_LANGUAGE = 'en'
 
 def handle_recognition(req):
-    configs = rospt.getparam("/stt_configs/")
+    configs = rospy.getparam("/stt_configs/")
     rospy.loginfo("Initializing RealtimeSTT test... \n")
 
     if req.prompt != '':
