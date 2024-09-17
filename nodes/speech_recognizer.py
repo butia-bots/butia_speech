@@ -4,7 +4,7 @@
 import rospy
 import rospkg
 from butia_speech.srv import SpeechToText, SpeechToTextResponse
-from speech_recognition import Microphone, Recognizer, WaitTimeoutError, RequestError, UnknownValueError
+#from speech_recognition import Microphone, Recognizer, WaitTimeoutError, RequestError, UnknownValueError
 import os
 import numpy as np
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC, pipeline
