@@ -4,18 +4,13 @@ from butia_speech.srv import AudioPlayer, SynthesizeSpeech, SynthesizeSpeechResp
 from butia_speech.msg import SynthesizeSpeechMessage
 from std_msgs.msg import Bool
 
-from espnet2.bin.tts_inference import Text2Speech
-from espnet2.utils.types import str_or_none
 from scipy.io import wavfile
 import os
-import torch
 import rospy
 import numpy as np
 import rospkg
-import pickle
 
 import numpy as np
-import soundfile as sf
 import riva.client
 
 from termcolor import colored
@@ -26,34 +21,35 @@ if not warning:
 PACK_DIR = rospkg.RosPack().get_path("butia_speech")
 AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
-MODEL_DIR = os.path.join(PACK_DIR, "include/model/total_count/")
-MODEL_NAME = "model.pkl"
-MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
+#MODEL_DIR = os.path.join(PACK_DIR, "include/model/total_count/")
+#MODEL_NAME = "model.pkl"
+#MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
 
 sample_rate_hz = 44100
 riva_req = { 
         "language_code"  : "en-US",
         "encoding"       : riva.client.AudioEncoding.LINEAR_PCM ,   # LINEAR_PCM and OGGOPUS encodings are supported
         "sample_rate_hz" : sample_rate_hz,                          # Generate 44.1KHz audio
-        "voice_name"     : "English-US.Female-1",                 # The name of the voice to generate
+        "voice_name"     : "English-US.Male-1",                 # The name of the voice to generate
 }
 
 def synthesize_speech(req):
     speech = req.text
     lang = "en" # lang = req.lang
-
-    '''with torch.no_grad():
-        wav = text2speech(speech)["wav"]
-        wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))'''
     
-    resp = riva_tts.synthesize(custom_dictionary=riva_req, text=speech)
+    resp = riva_tts.synthesize(
+        custom_dictionary=riva_req, 
+        text=speech,
+        voice_name="English-US-RadTTS.Male-1", 
+        sample_rate_hz=sample_rate_hz, 
+        encoding=riva.client.AudioEncoding.LINEAR_PCM,
+        )
     audio_samples = np.frombuffer(resp.audio, dtype=np.int16)
     try:
         wavfile.write(FILENAME, sample_rate_hz, audio_samples)
         print("success")
     except:
         print("error")
-    #sf.write(FILENAME, audio_samples, sample_rate_hz)
     
     audio_player_service_param = rospy.get_param("services/audio_player/service", "/butia_speech/ap/audio_player")
     rospy.wait_for_service(audio_player_service_param, timeout=rospy.Duration(10))
@@ -72,37 +68,8 @@ def synthesize_speech(req):
 
 if __name__ == '__main__':
     auth = riva.client.Auth(uri='jetson:50051')
-
     riva_tts = riva.client.SpeechSynthesisService(auth)
 
-    '''
-    tag = rospy.get_param("butia_speech_synthesizer/tag", "kan-bayashi/ljspeech_vits")
-    vocoder_tag = rospy.get_param("butia_speech_synthesizer/vocoder_tag", "none")
-    os.makedirs(MODEL_DIR, exist_ok=True)
-    try:
-        with open(os.path.join(PACK_DIR, MODEL_PATH),'rb') as f:
-            text2speech = pickle.load(f)
-        print("-------------Local model loaded-------------")
-    except Exception as e:
-        print(f"Failed to load local model error: {e}")
-        text2speech = Text2Speech.from_pretrained(model_tag=str_or_none(tag),
-                                              vocoder_tag=str_or_none(vocoder_tag),
-                                              device="cpu",
-                                              threshold=0.5,
-                                              minlenratio=0.0,
-                                              maxlenratio=10.0,
-                                              use_att_constraint=False,
-                                              backward_window=1,
-                                              forward_window=3,
-                                              speed_control_alpha=1.15,
-                                              noise_scale=0.333,
-                                              noise_scale_dur=0.333,
-                                            )
-        print(text2speech)
-        print("-----------Download from internet----------------")
-        with open(os.path.join(PACK_DIR, MODEL_PATH), 'wb') as f:
-            pickle.dump(text2speech, f)
-    '''
     rospy.init_node('speech_synthesizer', anonymous=False)
 
     say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
