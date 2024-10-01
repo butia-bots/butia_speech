@@ -14,6 +14,10 @@ import numpy as np
 import rospkg
 import pickle
 
+import numpy as np
+import soundfile as sf
+import riva.client
+
 from termcolor import colored
 import warnings
 warning = rospy.get_param("warnings", False)
@@ -26,14 +30,30 @@ MODEL_DIR = os.path.join(PACK_DIR, "include/model/total_count/")
 MODEL_NAME = "model.pkl"
 MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
 
+sample_rate_hz = 44100
+riva_req = { 
+        "language_code"  : "en-US",
+        "encoding"       : riva.client.AudioEncoding.LINEAR_PCM ,   # LINEAR_PCM and OGGOPUS encodings are supported
+        "sample_rate_hz" : sample_rate_hz,                          # Generate 44.1KHz audio
+        "voice_name"     : "English-US.Female-1",                 # The name of the voice to generate
+}
 
 def synthesize_speech(req):
     speech = req.text
     lang = "en" # lang = req.lang
 
-    with torch.no_grad():
+    '''with torch.no_grad():
         wav = text2speech(speech)["wav"]
-        wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))
+        wavfile.write(FILENAME, text2speech.fs, (wav.view(-1).cpu().numpy()*32768).astype(np.int16))'''
+    
+    resp = riva_tts.synthesize(custom_dictionary=riva_req, text=speech)
+    audio_samples = np.frombuffer(resp.audio, dtype=np.int16)
+    try:
+        wavfile.write(FILENAME, sample_rate_hz, audio_samples)
+        print("success")
+    except:
+        print("error")
+    #sf.write(FILENAME, audio_samples, sample_rate_hz)
     
     audio_player_service_param = rospy.get_param("services/audio_player/service", "/butia_speech/ap/audio_player")
     rospy.wait_for_service(audio_player_service_param, timeout=rospy.Duration(10))
@@ -64,7 +84,11 @@ def synthesize_speech(req):
 
 
 if __name__ == '__main__':
+    auth = riva.client.Auth(uri='jetson:50051')
 
+    riva_tts = riva.client.SpeechSynthesisService(auth)
+
+    '''
     tag = rospy.get_param("butia_speech_synthesizer/tag", "kan-bayashi/ljspeech_vits")
     vocoder_tag = rospy.get_param("butia_speech_synthesizer/vocoder_tag", "none")
     os.makedirs(MODEL_DIR, exist_ok=True)
@@ -91,7 +115,7 @@ if __name__ == '__main__':
         print("-----------Download from internet----------------")
         with open(os.path.join(PACK_DIR, MODEL_PATH), 'wb') as f:
             pickle.dump(text2speech, f)
-    
+    '''
     rospy.init_node('speech_synthesizer', anonymous=False)
 
     say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
