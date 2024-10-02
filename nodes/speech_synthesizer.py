@@ -60,6 +60,8 @@ def synthesize_speech(req):
         msg.success.data = True
         return msg
     except rospy.ServiceException as exc:
+        response = SynthesizeSpeechResponse
+        response.success = False
         print("Service call failed: %s" % exc)
         msg = SynthesizeSpeechResponse()
         msg.success.data = False
