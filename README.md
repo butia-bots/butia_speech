@@ -2,16 +2,19 @@
 
 ## 1. Description
 
-This package provides some tools to make the robot DoRIS speak and listen. We use ROS packages and Python libraries to be possible to play audios and to recognize of speech (a.k.a speech-to-text and text-to-speech). 
+This package provides some tools to make the robot DoRIS speak and listen. We use ROS packages and Python libraries to be possible to play audios and to recognize of speech (a.k.a speech-to-text and text-to-speech).
 
-___
+---
+
 ## 2. Requirements
 
 You will need:
+
 - [ROS Noetic](http://wiki.ros.org/noetic/Installation)
 - pip
 
-___
+---
+
 ## 3. Download dependencies
 
 To install the dependencies you will need to run the _install.sh_ with super user permission.
@@ -23,7 +26,8 @@ sudo ./install.sh
 
 The dependencies will be installed.
 
-___
+---
+
 ## 4. Nodes
 
 We developed some nodes that will go help to make the speech-to-text (STT) and text-to-speech (TTS). They can be seen in _nodes_ directory.
@@ -34,12 +38,13 @@ The **detector_hotword_node** is a ROS Topic that, when called, listens and wait
 
 The **speech_recognizer** node is a ROS Service that, when called, listens and returns a text of what was spoken.
 
-The **speech_synthesizer** node is a ROS Service and a ROS Topic that receive a text and a language (english by default, other languages aren't implemented yet). We developed the node with service and topic because the ROS Topic is no-blocking, so we can make others tasks while the robot speaks. 
+The **speech_synthesizer** node is a ROS Service and a ROS Topic that receive a text and a language (english by default, other languages aren't implemented yet). We developed the node with service and topic because the ROS Topic is no-blocking, so we can make others tasks while the robot speaks.
 
-___
+---
+
 ## 5. Services and messages
 
-We created some services and messages to make possible the communication between ours packages. 
+We created some services and messages to make possible the communication between ours packages.
 
 ### 5.1 Services
 
@@ -51,20 +56,30 @@ We created some services and messages to make possible the communication between
 
 - SynthesizeSpeechMessage.msg uses the text and a language as string.
 
-___
+---
+
 ## 6. Usage
 
 The first use of the nodes may take a while as the models are being downloaded.
 
+For use of new tts, you need to run the Riva server on the embedded device:
+
+```
+docker start <riva_server_docker_container>
+```
+
 To start the nodes you must run:
+
 ```
 rosrun butia_speech <node_name>.py
 ```
 
-* <node_name> available are: audio_player, detector_hotword_node, speech_recognizer, speech_synthesizer.
+- <node_name> available are: audio_player, detector_hotword_node, speech_recognizer, speech_synthesizer.
 
 ## Citation
+
 If you find this package useful, consider citing it using:
+
 ```
 @misc{butia_speech,
     title={Butia Speech Package},
@@ -73,6 +88,7 @@ If you find this package useful, consider citing it using:
     year={2022}
 }
 ```
+
 <p align="center"> 
   <i>If you liked this repository, please don't forget to starred it!</i>
   <img src="https://img.shields.io/github/stars/butia-bots/butia_speech?style=social"/>
