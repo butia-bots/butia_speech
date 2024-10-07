@@ -15,51 +15,59 @@ import riva.client
 
 from termcolor import colored
 import warnings
+
+# Fetch the warning parameter from ROS parameters
 warning = rospy.get_param("warnings", False)
 if not warning:
+    # Suppress warnings if the parameter is set to False
     warnings.filterwarnings("ignore")
-PACK_DIR = rospkg.RosPack().get_path("butia_speech")
-AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
-FILENAME = str(AUDIO_DIR) + "talk.wav"
-#MODEL_DIR = os.path.join(PACK_DIR, "include/model/total_count/")
-#MODEL_NAME = "model.pkl"
-#MODEL_PATH = os.path.join(MODEL_DIR, MODEL_NAME)
 
-sample_rate_hz = 44100
-riva_req = { 
-        "language_code"  : "en-US",
-        "encoding"       : riva.client.AudioEncoding.LINEAR_PCM ,   # LINEAR_PCM and OGGOPUS encodings are supported
-        "sample_rate_hz" : sample_rate_hz,                          # Generate 44.1KHz audio
-        "voice_name"     : "English-US.Male-1",                 # The name of the voice to generate
-}
+# Get the path of the 'butia_speech' package
+PACK_DIR = rospkg.RosPack().get_path("butia_speech")
+# Construct the path to the audio directory
+AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
+# Set the filename for the generated audio file
+FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 def synthesize_speech(req):
+    configs = rospy.get_param("~tts_configs/")
+    # Extract the text to be synthesized from the request
     speech = req.text
-    lang = "en" # lang = req.lang
     
+    # Call Riva TTS to synthesize the speech
     resp = riva_tts.synthesize(
-        custom_dictionary=riva_req, 
+        custom_dictionary=configs, 
         text=speech,
-        voice_name="English-US-RadTTS.Male-1", 
-        sample_rate_hz=sample_rate_hz, 
+        voice_name=configs["voice_name"], 
+        sample_rate_hz=configs["sample_rate_hz"],
+        language_code=configs["language_code"],
         encoding=riva.client.AudioEncoding.LINEAR_PCM,
-        )
+    )
+    # Convert the response audio to a NumPy array
     audio_samples = np.frombuffer(resp.audio, dtype=np.int16)
     try:
+        # Write the audio samples to a WAV file
         wavfile.write(FILENAME, sample_rate_hz, audio_samples)
-        print("success")
+        print("success")  # Print success message if the file is written successfully
     except:
-        print("error")
+        print("error")  # Print error message if there is an issue writing the file
     
+    # Fetch the audio player service parameter
     audio_player_service_param = rospy.get_param("services/audio_player/service", "/butia_speech/ap/audio_player")
+    # Wait for the audio player service to be available
     rospy.wait_for_service(audio_player_service_param, timeout=rospy.Duration(10))
     try:
+        # Call the audio player service to play the generated audio
         audio_player = rospy.ServiceProxy(audio_player_service_param, AudioPlayer)
         audio_player(FILENAME)
+        # Construct the response message indicating success
         msg = SynthesizeSpeechResponse()
         msg.success.data = True
         return msg
     except rospy.ServiceException as exc:
+        # Construct the response message indicating failure
+        response = SynthesizeSpeechResponse
+        response.success = False
         print("Service call failed: %s" % exc)
         msg = SynthesizeSpeechResponse()
         msg.success.data = False
@@ -67,16 +75,25 @@ def synthesize_speech(req):
 
 
 if __name__ == '__main__':
-    auth = riva.client.Auth(uri='jetson:50051')
+    riva_url = rospy.get_param("~riva/url", "http://localhost:50051")
+    # Authenticate with the Riva server
+    auth = riva.client.Auth(uri=riva_url)
+    # Initialize the Riva TTS service
     riva_tts = riva.client.SpeechSynthesisService(auth)
 
+    # Initialize the ROS node
     rospy.init_node('speech_synthesizer', anonymous=False)
 
+    # Fetch the subscriber topic parameter
     say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
+    # Subscribe to the topic to receive text messages
     rospy.Subscriber(say_something_subscriber_param, SynthesizeSpeechMessage, callback=synthesize_speech)
 
+    # Fetch the service parameter
     synthesizer_service_param = rospy.get_param("services/speech_synthesizer/service", "/butia_speech/ss/say_something")
+    # Provide the speech synthesis service
     rospy.Service(synthesizer_service_param, SynthesizeSpeech, synthesize_speech)
     
     print(colored("Speech Synthesizer is on!", "green"))
+    # Keep the node running
     rospy.spin()
