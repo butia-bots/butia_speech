@@ -71,6 +71,7 @@ def synthesize_speech(req):
         return msg
 >>>>>>> bf99cb3 (addind the attribute data to the response)
     except rospy.ServiceException as exc:
+        # Construct the response message indicating failure
         response = SynthesizeSpeechResponse
         response.success = False
         print("Service call failed: %s" % exc)
