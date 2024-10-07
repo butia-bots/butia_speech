@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../include/binding/'
 import pvporcupine
 
 #Fbot Picovoice Porcupine Access Key
-access_key="g5pONkkK5ZY13pObfVoulaqSDdMpyyq+kuZlNpWP7lEQI9CuKMU5WA==" 
+access_key="Tbyk0dhsux2oYz/+GO8IGk05dCGmhTVze760CdDlA/vfLjkuGCqdRQ==" 
 
 class DetectHotWord():
     def __init__(self, keyword_path, sensitivity, library_path=None, model_path=None):
