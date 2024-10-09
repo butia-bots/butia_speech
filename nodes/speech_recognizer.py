@@ -4,11 +4,12 @@
 import rospy
 import rospkg
 from butia_speech.srv import SpeechToText, SpeechToTextResponse
-from speech_recognition import Microphone, Recognizer, WaitTimeoutError, RequestError, UnknownValueError
 import os
 import numpy as np
-from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC, pipeline
 from playsound import playsound
+
+from RealtimeSTT import AudioToTextRecorder
+import os
 
 from termcolor import colored
 import warnings
@@ -25,51 +26,51 @@ TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 DEFAULT_LANGUAGE = 'en'
 
 def handle_recognition(req):
-    with Microphone(sample_rate=sample_rate) as source:
-        recognizer.adjust_for_ambient_noise(source, duration=noise_adjust_duration)
+    # Fetch the STT configurations from ROS parameters
+    configs = rospy.get_param("~stt_configs/")
 
-    playsound(TALK_AUDIO, block=True)
+    # If a prompt is provided, update the configurations
+    if req.prompt != '':
+        rospy.loginfo(f'Prompt to make easier the recognition: {req.prompt}')
+        configs.update({'initial_prompt': req.prompt})
 
-    with Microphone(sample_rate=sample_rate) as source:
+    # Update the configurations with additional parameters
+    configs.update({
+        'language': req.lang if req.lang != '' else DEFAULT_LANGUAGE,  # Set the language for recognition
+        'on_recording_start': lambda: rospy.loginfo("Starting Record..."),  # Log message when recording starts
+        'on_vad_detect_start': lambda: playsound(TALK_AUDIO),  # Play beep sound when voice activity is detected
+        'on_vad_detect_stop': lambda: rospy.loginfo("Finished Listening..."),  # Log message when voice activity stops
+        'on_recording_stop': lambda: rospy.loginfo("Processing...")  # Log message when recording stops
+    })
+
+    try:
+        # Initialize the audio-to-text recorder with the configurations
+        with AudioToTextRecorder(**configs) as recorder:
+            # Get the recognized text
+            text = recorder.text()
         try:
-            audio = recognizer.listen(source, phrase_time_limit=phrase_time_limit, timeout=timeout)
-            
-            prompt = req.prompt
-            lang = req.lang
-
-            if lang == '':
-                lang = DEFAULT_LANGUAGE
-            
-            model = whisper_model
-            if lang == 'en':
-                if not model.endswith('.en'):
-                    model = model + '.en'
-            else:
-                if model.endswith('.en'):
-                    model = model[:-3]
-            
-            rospy.loginfo(f'Prompt to make easier the recognition: {prompt}')
-            text = recognizer.recognize_whisper(audio, model, language=lang, initial_prompt=prompt, 
-                                                load_options={'download_root': RESOURCES_DIR, 'in_memory': True}).lower()
-
-        except WaitTimeoutError:
-            text = ''
+            # Shutdown the recorder
+            AudioToTextRecorder.shutdown()
+        except:
+            pass
+    except Exception as e:
+        # Print any exceptions that occur
+        print(e)
+        text = ''
     return SpeechToTextResponse(
         text=text
     )
 
 if __name__ == '__main__':
-    recognizer = Recognizer()
+    # Initialize the ROS node
     rospy.init_node('speech_recognizer')
     
+    # Fetch the recognizer service parameter
     recognizer_service_param = rospy.get_param("~services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
-    noise_adjust_duration = rospy.get_param("~noise_adjust_duration", 1)
-    whisper_model = rospy.get_param("~whisper_model", "small")
-    phrase_time_limit = rospy.get_param("~phrase_time_limit", 8)
-    timeout = rospy.get_param("~timeout", 5)
-    sample_rate = rospy.get_param("~sample_rate", 16000)
 
+    # Provide the speech recognition service
     recognition_service = rospy.Service(recognizer_service_param, SpeechToText, handle_recognition)
 
     rospy.loginfo("Speech Recognizer is on!")
+    # Keep the node running
     rospy.spin()
