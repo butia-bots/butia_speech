@@ -1,0 +1,7 @@
+riva:
+  url: "http://jetson:50051"
+
+tts_configs:
+  language_code: "en-US"
+  sample_rate_hz: 44100
+  voice_name: "English-US.Male-1"
