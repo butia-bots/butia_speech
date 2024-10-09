@@ -12,10 +12,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../include/binding/'
 # from porcupine import Porcupine
 import pvporcupine
 
-access_key="Tbyk0dhsux2oYz/+GO8IGk05dCGmhTVze760CdDlA/vfLjkuGCqdRQ==" 
+access_key="g5pONkkK5ZY13/pObfVoulaqSDdMpyyq+kuZlNpWP7lEQI9CuKMU5WA==" 
 
 class DetectHotWord():
     def __init__(self, keyword_path, sensitivity, library_path=None, model_path=None):
+        # if library_path is None:
+        #     library_path = pvporcupine.LIBRARY_PATH
+        # if model_path is None:
+        #     model_path = pvporcupine.MODEL_PATH
         # if library_path is None:
         #     library_path = pvporcupine.LIBRARY_PATH
         # if model_path is None:
@@ -41,9 +45,8 @@ class DetectHotWord():
             recorded_frames = []
             recorded_frames.append(pcm)
             result = self.handle.process(pcm)
-            if result >= 0:
-                return True
-        return False
+            return result #Return an integer representing the index of the hotword detected, from zero.
+        return -1
 
     def __del__(self):
         self.mic.close()
