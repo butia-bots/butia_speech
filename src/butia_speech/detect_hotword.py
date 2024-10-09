@@ -12,10 +12,15 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../include/binding/'
 # from porcupine import Porcupine
 import pvporcupine
 
+#Fbot Picovoice Porcupine Access Key
 access_key="Tbyk0dhsux2oYz/+GO8IGk05dCGmhTVze760CdDlA/vfLjkuGCqdRQ==" 
 
 class DetectHotWord():
     def __init__(self, keyword_path, sensitivity, library_path=None, model_path=None):
+        # if library_path is None:
+        #     library_path = pvporcupine.LIBRARY_PATH
+        # if model_path is None:
+        #     model_path = pvporcupine.MODEL_PATH
         # if library_path is None:
         #     library_path = pvporcupine.LIBRARY_PATH
         # if model_path is None:
