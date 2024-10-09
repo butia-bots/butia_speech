@@ -31,7 +31,7 @@ AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 def synthesize_speech(req):
-    configs = rospy.get_param("~tts_configs/")
+    configs = rospy.get_param("tts_configs/")
     # Extract the text to be synthesized from the request
     speech = req.text
     
@@ -65,7 +65,7 @@ def synthesize_speech(req):
         response.success = True
         return response
     except rospy.ServiceException as exc:
-        response = SynthesizeSpeechResponse
+        response = SynthesizeSpeechResponse()
         response.success = False
         print("Service call failed: %s" % exc)
         return response
