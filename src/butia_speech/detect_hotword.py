@@ -21,6 +21,10 @@ class DetectHotWord():
         #     library_path = pvporcupine.LIBRARY_PATH
         # if model_path is None:
         #     model_path = pvporcupine.MODEL_PATH
+        # if library_path is None:
+        #     library_path = pvporcupine.LIBRARY_PATH
+        # if model_path is None:
+        #     model_path = pvporcupine.MODEL_PATH
 
         self.handle = pvporcupine.create(access_key=access_key, keyword_paths=keyword_path, sensitivities=sensitivity)
         self.mic = None
