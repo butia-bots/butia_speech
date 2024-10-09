@@ -47,7 +47,7 @@ def synthesize_speech(req):
     audio_samples = np.frombuffer(resp.audio, dtype=np.int16)
     try:
         # Write the audio samples to a WAV file
-        wavfile.write(FILENAME, sample_rate_hz, audio_samples)
+        wavfile.write(FILENAME, configs["sample_rate_hz"], audio_samples)
         print("success")  # Print success message if the file is written successfully
     except:
         print("error")  # Print error message if there is an issue writing the file

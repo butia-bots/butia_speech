@@ -64,8 +64,11 @@ The first use of the nodes may take a while as the models are being downloaded.
 
 For use of new tts, you need to run the Riva server on the embedded device:
 
+On jetson:
+
 ```
-docker start <riva_server_docker_container>
+cd riva...<tab>
+bash riva_start.sh
 ```
 
 To start the nodes you must run:
