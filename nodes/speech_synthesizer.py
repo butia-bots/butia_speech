@@ -72,7 +72,7 @@ def synthesize_speech(req):
 
 
 if __name__ == '__main__':
-    riva_url = rospy.get_param("~riva/url", "http://localhost:50051")
+    riva_url = rospy.get_param("~riva/url", "jetson:50051")
     # Authenticate with the Riva server
     auth = riva.client.Auth(uri=riva_url)
     # Initialize the Riva TTS service
