@@ -31,7 +31,7 @@ AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 def synthesize_speech(req):
-    riva_url = rospy.get_param("~riva/url", "jetson:50051")
+    riva_url = rospy.get_param("~riva/url", "localhost:50051")
     configs = rospy.get_param("tts_configs/")
     
     # Authenticate with the Riva server

@@ -1,5 +1,5 @@
 riva:
-  url: "jetson:50051"
+  url: "localhost:50051"
 
 tts_configs:
   language_code: "en-US"
