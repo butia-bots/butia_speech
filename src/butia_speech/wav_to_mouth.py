@@ -3,16 +3,17 @@ import os
 import wave
 import rospy
 import rospkg
-import pyaudio
 import numpy as np
 import struct
+import sounddevice as sd
 from std_msgs.msg import Int16MultiArray, Int16
 
 BUTIA_SPEECH_PKG = rospkg.RosPack().get_path("butia_speech")
 AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/")
 
 def map_range(x, in_min, in_max, out_min, out_max):
-  return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+    return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+
 class WavToMouth():
 
     def __init__(self):
@@ -25,7 +26,6 @@ class WavToMouth():
 
         self.audio = None
         self.audio_info = None
-        self.stream = None
 
         self.output = Int16MultiArray()
         self.mouth_gain = rospy.get_param("mouth_gain", 2.5)
@@ -58,8 +58,7 @@ class WavToMouth():
         self.streaming = False
         self.output.data = [0, 100]
         self.angle_publisher.publish(self.output)
-        self.stream.close()
-        self.p.terminate()
+        sd.stop()
 
     def set_audio_info(self, audio_info):
         self.audio_info = audio_info
@@ -76,18 +75,12 @@ class WavToMouth():
         self._open_stream()
 
     def _open_stream(self):
-        self.p = pyaudio.PyAudio()
-
         if self.audio is not None:
-            self.stream = self.p.open(format = self.p.get_format_from_width(self.audio.getsampwidth()),
-                                      channels=self.audio.getnchannels(),
-                                      rate=self.audio.getframerate(),
-                                      output=True)
+            self.sample_rate = self.audio.getframerate()
+            self.channels = self.audio.getnchannels()
         elif self.audio_info is not None:
-            self.stream = self.p.open(format=int(self.audio_info.sample_format),
-                                      channels=self.audio_info.channels,
-                                      rate=self.audio_info.sample_rate,
-                                      output=True)
+            self.sample_rate = self.audio_info.sample_rate
+            self.channels = self.audio_info.channels
         
         self.audio = None
         self.audio_info = None
@@ -110,10 +103,10 @@ class WavToMouth():
         self.data += self.divide_audio_in_chunks(data)
 
     def play_chunk(self):
-        if len(self.data) > 0 and self.stream is not None:
+        if len(self.data) > 0:
             data = self.data.pop(0)
-
-            self.stream.write(data)
+            audio_array = np.frombuffer(data, dtype=np.int16)
+            sd.play(audio_array, samplerate=self.sample_rate, channels=self.channels)
 
             rms = self._compute_chunk_rms(data)
             mouth_angle = self._normalize_rms(rms, gain=self.mouth_gain)
@@ -125,11 +118,9 @@ class WavToMouth():
             self.stop_stream()
 
     def play_all_data(self):
-
         while len(self.data) > 0:
             self.play_chunk()
-        
+
         self.output.data = [0, 100]
         self.angle_publisher.publish(self.output)
-        self.stream.close()
-        self.p.terminate()
+        sd.stop()
