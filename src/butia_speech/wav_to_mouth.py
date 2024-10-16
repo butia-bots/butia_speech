@@ -7,6 +7,7 @@ import numpy as np
 import struct
 import sounddevice as sd
 from std_msgs.msg import Int16MultiArray, Int16
+from threading import Lock, Event
 
 BUTIA_SPEECH_PKG = rospkg.RosPack().get_path("butia_speech")
 AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/")
@@ -20,6 +21,7 @@ class WavToMouth():
         self.chunk_size = rospy.get_param("chunk_size", 2048)
 
         self.data = []
+        self.data_lock = Lock()  # To ensure thread-safe access to self.data
 
         self.max = 0
         self.min = 0
@@ -34,7 +36,15 @@ class WavToMouth():
 
         self.streaming = False
         self.request_stream_stop = False
-    
+
+        self.sample_rate = 44100  # Default value; will be updated
+        self.channels = 1         # Default value; will be updated
+
+        self.stream = None
+        self.stream_lock = Lock()  # To manage access to the stream
+
+        self.playback_done_event = Event()  # Event to signal playback completion
+
     def divide_audio_in_chunks(self, audio_data, num_bytes=2):
         chunks = []
         for start in range(0, len(audio_data), self.chunk_size*num_bytes):
@@ -46,19 +56,47 @@ class WavToMouth():
         self.audio = wave.open(self.filepath, "rb")
         audio_data = self.audio.readframes(self.audio.getnframes())
         self.data += self.divide_audio_in_chunks(audio_data, num_bytes=self.audio.getsampwidth())
+        self.sample_rate = self.audio.getframerate()
+        self.channels = self.audio.getnchannels()
 
     def request_stop_stream(self):
         self.request_stream_stop = True
 
     def start_stream(self):
-        self.streaming = True
-        self.request_stream_stop = False
-    
+        with self.stream_lock:
+            if self.streaming:
+                rospy.logwarn("Stream is already running.")
+                return
+            self.streaming = True
+            self.request_stream_stop = False
+
+            if self.stream is None:
+                self.stream = sd.OutputStream(
+                    samplerate=self.sample_rate,
+                    channels=self.channels,
+                    callback=self.audio_callback,
+                    blocksize=self.chunk_size,
+                    dtype='int16'
+                )
+                self.stream.start()
+                rospy.loginfo("Audio stream started.")
+            else:
+                rospy.logwarn("Stream already initialized.")
+
     def stop_stream(self):
-        self.streaming = False
-        self.output.data = [0, 100]
-        self.angle_publisher.publish(self.output)
-        sd.stop()
+        with self.stream_lock:
+            if not self.streaming:
+                rospy.logwarn("Stream is not running.")
+                return
+            self.streaming = False
+            self.output.data = [0, 100]
+            self.angle_publisher.publish(self.output)
+            if self.stream is not None:
+                self.stream.stop()
+                self.stream.close()
+                self.stream = None
+                rospy.loginfo("Audio stream stopped.")
+            sd.stop()
 
     def set_audio_info(self, audio_info):
         self.audio_info = audio_info
@@ -67,8 +105,7 @@ class WavToMouth():
     def set_filepath(self, filepath):
         self.filepath = os.path.join(AUDIO, filepath)
         self._read_data_of_audio()
-        self._open_stream()
-    
+
     def set_data_and_info(self, data, info):
         self.data += self.divide_audio_in_chunks(data)
         self.audio_info = info
@@ -81,7 +118,7 @@ class WavToMouth():
         elif self.audio_info is not None:
             self.sample_rate = self.audio_info.sample_rate
             self.channels = self.audio_info.channels
-        
+
         self.audio = None
         self.audio_info = None
 
@@ -100,27 +137,58 @@ class WavToMouth():
         return min(max(int((rms_value / max_rms) * 100), 0), 100)
 
     def stream_data_callback(self, data):
-        self.data += self.divide_audio_in_chunks(data)
+        with self.data_lock:
+            self.data += self.divide_audio_in_chunks(data)
 
-    def play_chunk(self):
-        if len(self.data) > 0:
+    def audio_callback(self, outdata, frames, time, status):
+        if status:
+            rospy.logerr(f"Stream status: {status}")
+        with self.data_lock:
+            if len(self.data) == 0:
+                # If no data is available, output silence
+                outdata[:] = np.zeros((frames, self.channels), dtype='int16')
+                # Signal that playback is done
+                self.playback_done_event.set()
+                return
+
+            # Get the next chunk
             data = self.data.pop(0)
-            audio_array = np.frombuffer(data, dtype=np.int16)
-            sd.play(audio_array, samplerate=self.sample_rate, channels=self.channels)
 
-            rms = self._compute_chunk_rms(data)
-            mouth_angle = self._normalize_rms(rms, gain=self.mouth_gain)
-            self.output.data = [mouth_angle, abs(100 - mouth_angle)]
-            self.angle_publisher.publish(self.output)
-            self.mouth_debug_publisher.publish(Int16(mouth_angle))
-            
-        elif self.streaming and self.request_stream_stop:
-            self.stop_stream()
+        # Convert bytes to NumPy array
+        audio_array = np.frombuffer(data, dtype=np.int16)
+
+        # Reshape based on channels
+        if self.channels > 1:
+            try:
+                audio_array = audio_array.reshape(-1, self.channels)
+            except ValueError:
+                rospy.logerr("Audio data size is not compatible with the number of channels.")
+                audio_array = np.zeros((frames, self.channels), dtype='int16')
+
+        # Handle cases where the chunk size doesn't match the stream's blocksize
+        if len(audio_array) < frames * self.channels:
+            # Pad with zeros if the chunk is smaller
+            pad_width = (frames * self.channels) - len(audio_array)
+            audio_array = np.pad(audio_array, (0, pad_width), 'constant', constant_values=0)
+        elif len(audio_array) > frames * self.channels:
+            # Trim the chunk if it's larger
+            audio_array = audio_array[:frames * self.channels]
+
+        outdata[:] = audio_array.reshape((frames, self.channels))
+
+        # Compute RMS and publish mouth angles
+        rms = self._compute_chunk_rms(data)
+        mouth_angle = self._normalize_rms(rms, gain=self.mouth_gain)
+        self.output.data = [mouth_angle, abs(100 - mouth_angle)]
+        self.angle_publisher.publish(self.output)
+        self.mouth_debug_publisher.publish(Int16(mouth_angle))
 
     def play_all_data(self):
-        while len(self.data) > 0:
-            self.play_chunk()
-
-        self.output.data = [0, 100]
-        self.angle_publisher.publish(self.output)
-        sd.stop()
+        # Clear the playback done event
+        self.playback_done_event.clear()
+        # Start the audio stream
+        self.start_stream()
+        # Wait until the playback is done
+        self.playback_done_event.wait()
+        # Stop the stream gracefully
+        self.stop_stream()
