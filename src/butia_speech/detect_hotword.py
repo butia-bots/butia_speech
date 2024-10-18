@@ -41,9 +41,8 @@ class DetectHotWord():
             recorded_frames = []
             recorded_frames.append(pcm)
             result = self.handle.process(pcm)
-            if result >= 0:
-                return True
-        return False
+            return result #Return an integer representing the index of the hotword detected, from zero.
+        return -1
 
     def __del__(self):
         self.mic.close()
