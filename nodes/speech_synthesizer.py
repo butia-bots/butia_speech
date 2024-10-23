@@ -32,17 +32,9 @@ FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 def synthesize_speech(req):
     config_defaults = {
-        "compute_type": "float32",
-        "spinner": False,
-        "model": "small.en",
-        "silero_sensitivity": 0.5,
-        "device": "cuda",
-        "webrtc_sensitivity": 1,
-        "post_speech_silence_duration": 0.4,
-        "min_length_of_recording": 0.5,
-        "min_gap_between_recordings": 0,
-        "enable_realtime_transcription": False,
-        "silero_deactivity_detection": True,
+        "language_code": "en-US",
+        "sample_rate_hz": 44100,
+        "voice_name": "English-US.Male-1",
     }
     configs = rospy.get_param("tts_configs/", config_defaults)
 
