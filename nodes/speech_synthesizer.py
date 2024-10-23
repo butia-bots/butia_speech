@@ -31,7 +31,20 @@ AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 def synthesize_speech(req):
-    configs = rospy.get_param("tts_configs/")
+    config_defaults = {
+        "compute_type": "float32",
+        "spinner": False,
+        "model": "small.en",
+        "silero_sensitivity": 0.5,
+        "device": "cuda",
+        "webrtc_sensitivity": 1,
+        "post_speech_silence_duration": 0.4,
+        "min_length_of_recording": 0.5,
+        "min_gap_between_recordings": 0,
+        "enable_realtime_transcription": False,
+        "silero_deactivity_detection": True,
+    }
+    configs = rospy.get_param("tts_configs/", config_defaults)
 
     # Extract the text to be synthesized from the request
     speech = req.text
