@@ -5,7 +5,14 @@ import rospy
 import time
 
 from butia_speech.wav_to_mouth import WavToMouth
-from butia_speech.srv import AudioPlayer, AudioPlayerResponse, AudioPlayerByData, AudioPlayerByDataResponse, AudioStreamStart, AudioStreamStartResponse
+from butia_speech.srv import (
+    AudioPlayer,
+    AudioPlayerResponse,
+    AudioPlayerByData,
+    AudioPlayerByDataResponse,
+    AudioStreamStart,
+    AudioStreamStartResponse
+)
 from audio_common_msgs.msg import AudioData
 from std_srvs.srv import Empty, EmptyResponse
 from std_msgs.msg import Bool
@@ -24,7 +31,7 @@ def toTalk(req):
         return AudioPlayerResponse(False)
 
     filepath = req.audio_path
-    
+
     wm.set_filepath(filepath)
     wm.play_all_data()
 
@@ -104,5 +111,4 @@ if __name__ == "__main__":
                     rospy.loginfo('STREAM TIMEOUT')
                     wm.request_stop_stream()
                     last_stream_data_timestamp = None
-            wm.play_chunk()
         rate.sleep()

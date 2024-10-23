@@ -31,7 +31,13 @@ AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
 def synthesize_speech(req):
-    configs = rospy.get_param("tts_configs/")
+    config_defaults = {
+        "language_code": "en-US",
+        "sample_rate_hz": 44100,
+        "voice_name": "English-US.Male-1",
+    }
+    configs = rospy.get_param("tts_configs/", config_defaults)
+
     # Extract the text to be synthesized from the request
     speech = req.text
     
@@ -72,14 +78,15 @@ def synthesize_speech(req):
 
 
 if __name__ == '__main__':
-    riva_url = rospy.get_param("~riva/url", "http://localhost:50051")
+
+    # Initialize the ROS node
+    rospy.init_node('speech_synthesizer', anonymous=False)
+
+    riva_url = rospy.get_param("~riva/url", "localhost:50051")
     # Authenticate with the Riva server
     auth = riva.client.Auth(uri=riva_url)
     # Initialize the Riva TTS service
     riva_tts = riva.client.SpeechSynthesisService(auth)
-
-    # Initialize the ROS node
-    rospy.init_node('speech_synthesizer', anonymous=False)
 
     # Fetch the subscriber topic parameter
     say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")

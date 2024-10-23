@@ -44,10 +44,14 @@ def handle_recognition(req):
     })
 
     try:
+        start_time = time.time()  # Start the timer
         # Initialize the audio-to-text recorder with the configurations
         with AudioToTextRecorder(**configs) as recorder:
             # Get the recognized text
             text = recorder.text()
+            elapsed_time = time.time() - start_time  # Calculate elapsed time
+            if elapsed_time > 7:
+                raise TimeoutError("Recording exceeded 7 seconds")
         try:
             # Shutdown the recorder
             AudioToTextRecorder.shutdown()
