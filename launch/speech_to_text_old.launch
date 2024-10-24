@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <launch>
-	<node name="speech_recognizer" pkg="butia_speech" type="speech_recognizer.py" output="screen">
+	<node name="speech_recognizer" pkg="butia_speech" type="speech_recognizer_old.py" output="screen">
 		<rosparam file="$(find butia_speech)/config/ros.yaml" command="load"/>
 		<rosparam file="$(find butia_speech)/config/butia_speech_recognizer_old.yaml" command="load"/>
 	</node>
