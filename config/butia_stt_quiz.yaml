@@ -3,7 +3,7 @@ stt_configs:
   spinner: False
   model: "small.en"
   silero_sensitivity: 0.5
-  device: "cuda"
+  device: "cpu"
   webrtc_sensitivity: 1
   post_speech_silence_duration: 0.4
   min_length_of_recording: 0.5
