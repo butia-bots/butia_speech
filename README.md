@@ -64,7 +64,7 @@ The first use of the nodes may take a while as the models are being downloaded.
 
 For use of new tts, you need to run the Riva server on the embedded device:
 
-# On jetson:
+### On jetson:
 
 Try at first:
 
@@ -79,7 +79,7 @@ cd riva...<tab>
 bash riva_start.sh
 ```
 
-# On nuc:
+### On nuc:
 
 To start the nodes you must run:
 
