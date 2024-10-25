@@ -10,6 +10,7 @@ from playsound import playsound
 
 from RealtimeSTT import AudioToTextRecorder
 import os
+import time
 
 from termcolor import colored
 import warnings
@@ -26,8 +27,22 @@ TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 DEFAULT_LANGUAGE = 'en'
 
 def handle_recognition(req):
+    default_config = {
+        "compute_type": "float32",
+        "spinner": False,
+        "model": "small.en",
+        "silero_sensitivity": 0.5,
+        "device": "cpu",
+        "webrtc_sensitivity": 1,
+        "post_speech_silence_duration": 0.4,
+        "min_length_of_recording": 0.5,
+        "min_gap_between_recordings": 0,
+        "enable_realtime_transcription": False,
+        "silero_deactivity_detection": True,
+    }
+
     # Fetch the STT configurations from ROS parameters
-    configs = rospy.get_param("~stt_configs/")
+    configs = rospy.get_param("~stt_configs/", default_config)
 
     # If a prompt is provided, update the configurations
     if req.prompt != '':

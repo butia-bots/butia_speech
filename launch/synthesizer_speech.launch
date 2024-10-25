@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
-    <arg name="speech_synthesizer_machine"/>
-    <arg name="audio_player_machine"/>
+    <arg name="speech_synthesizer_machine" default="jetson"/>
+    <arg name="audio_player_machine" default="jetson"/>
     <arg name="use_machine" default="true"/>
 
     <rosparam file="$(find butia_speech)/config/ros.yaml" command="load"/>
