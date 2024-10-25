@@ -5,12 +5,10 @@ import rospy
 import rospkg
 from butia_speech.srv import SpeechToText, SpeechToTextResponse
 import os
-import numpy as np
 from playsound import playsound
 
 from RealtimeSTT import AudioToTextRecorder
 import os
-import time
 
 from termcolor import colored
 import warnings
@@ -59,14 +57,11 @@ def handle_recognition(req):
     })
 
     try:
-        start_time = time.time()  # Start the timer
         # Initialize the audio-to-text recorder with the configurations
         with AudioToTextRecorder(**configs) as recorder:
             # Get the recognized text
             text = recorder.text()
-            elapsed_time = time.time() - start_time  # Calculate elapsed time
-            if elapsed_time > 7:
-                raise TimeoutError("Recording exceeded 7 seconds")
+
         try:
             # Shutdown the recorder
             AudioToTextRecorder.shutdown()
