@@ -1,7 +1,9 @@
 <?xml version="1.0" ?>
 <launch>
+	<arg name="challenge_config" default="$(find butia_speech)/config/butia_stt_quiz.yaml"/>
+
 	<node name="speech_recognizer" pkg="butia_speech" type="speech_recognizer.py" output="screen">
 		<rosparam file="$(find butia_speech)/config/ros.yaml" command="load"/>
-		<rosparam file="$(find butia_speech)/config/butia_speech_recognizer.yaml" command="load"/>
+		<rosparam  file="$(arg challenge_config)" command="load"/>
 	</node>
 </launch>
