@@ -8,6 +8,7 @@ import struct
 import sounddevice as sd
 from std_msgs.msg import Int16MultiArray, Int16
 from threading import Lock, Event
+from scipy import signal
 
 BUTIA_SPEECH_PKG = rospkg.RosPack().get_path("butia_speech")
 AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/")
