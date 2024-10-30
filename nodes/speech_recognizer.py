@@ -26,14 +26,13 @@ DEFAULT_LANGUAGE = 'en'
 
 def handle_recognition(req):
     default_config = {
-        "compute_type": "float32",
         "spinner": False,
         "model": "small.en",
-        "silero_sensitivity": 0.5,
+        "silero_sensitivity": 0.8,
         "device": "cpu",
-        "webrtc_sensitivity": 1,
+        "webrtc_sensitivity": 0.6,
         "post_speech_silence_duration": 0.4,
-        "min_length_of_recording": 0.5,
+        "min_length_of_recording": 1,
         "min_gap_between_recordings": 0,
         "enable_realtime_transcription": False,
         "silero_deactivity_detection": True,
