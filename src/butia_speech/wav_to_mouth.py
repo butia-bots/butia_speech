@@ -7,6 +7,7 @@ import pyaudio
 import numpy as np
 import struct
 from std_msgs.msg import Int16MultiArray, Int16
+import audioop
 
 BUTIA_SPEECH_PKG = rospkg.RosPack().get_path("butia_speech")
 AUDIO = os.path.join(BUTIA_SPEECH_PKG, "audios/")
@@ -77,24 +78,21 @@ class WavToMouth():
         self._open_stream()
 
     def _open_stream(self):
-        self.p = pyaudio.PyAudio()
+            self.p = pyaudio.PyAudio()
+            
+            if self.audio is not None:
+                self.stream = self.p.open(format=self.p.get_format_from_width(self.audio.getsampwidth()),
+                                        channels=self.audio.getnchannels(),
+                                        rate=self.audio.getframerate(),
+                                        output=True)
+            elif self.audio_info is not None:
+                self.stream = self.p.open(format=int(self.audio_info.sample_format),
+                                        channels=self.audio_info.channels,
+                                        rate=self.audio_info.sample_rate,
+                                        output=True)
 
-        if self.audio is not None:
-            original_rate = self.audio.getframerate()
-            rate = int(original_rate * self.playback_speed)  # Adjust rate based on playback speed
-            self.stream = self.p.open(format=self.p.get_format_from_width(self.audio.getsampwidth()),
-                                      channels=self.audio.getnchannels(),
-                                      rate=rate,
-                                      output=True)
-        elif self.audio_info is not None:
-            rate = int(self.audio_info.sample_rate * self.playback_speed)  # Adjust rate based on playback speed
-            self.stream = self.p.open(format=int(self.audio_info.sample_format),
-                                      channels=self.audio_info.channels,
-                                      rate=rate,
-                                      output=True)
-        
-        self.audio = None
-        self.audio_info = None
+            self.audio = None
+            self.audio_info = None
 
     def _compute_chunk_rms(self, audio_chunk):
         """Compute the RMS value of an audio chunk."""
@@ -116,6 +114,11 @@ class WavToMouth():
     def play_chunk(self):
         if len(self.data) > 0 and self.stream is not None:
             data = self.data.pop(0)
+
+            # Adjust the data length for playback speed without changing pitch
+            if self.playback_speed != 1.0:
+                data, _ = audioop.ratecv(data, self.audio.getsampwidth(), self.audio.getnchannels(),
+                                         int(self.audio.getframerate()), int(self.audio.getframerate() * self.playback_speed), None)
 
             self.stream.write(data)
 
