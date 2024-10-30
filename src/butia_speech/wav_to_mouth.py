@@ -161,36 +161,33 @@ class WavToMouth():
         # Convert bytes to NumPy array
         audio_array = np.frombuffer(data, dtype=np.int16)
 
-        # Calculate up and down factors from playback_speed
-        try:
-            speed_fraction = fractions.Fraction.from_float(self.playback_speed).limit_denominator(100)
-            up_factor = max(1, speed_fraction.numerator)  # Ensure up_factor is at least 1
-            down_factor = max(1, speed_fraction.denominator)  # Ensure down_factor is at least 1
-
-            # Resample the audio array to match playback speed
-            resampled_audio = signal.resample_poly(audio_array, up_factor, down_factor)
-        except ValueError:
-            rospy.logerr("Invalid playback speed factors. Falling back to original speed.")
-            resampled_audio = audio_array
+        # Modify playback speed using interpolation
+        if self.playback_speed != 1.0:
+            original_indices = np.arange(audio_array.shape[0])
+            new_length = int(audio_array.shape[0] / self.playback_speed)
+            new_indices = np.linspace(0, original_indices[-1], new_length)
+            
+            # Interpolate audio data to fit new indices
+            audio_array = np.interp(new_indices, original_indices, audio_array).astype(np.int16)
 
         # Reshape based on channels
         if self.channels > 1:
             try:
-                resampled_audio = resampled_audio.reshape(-1, self.channels)
+                audio_array = audio_array.reshape(-1, self.channels)
             except ValueError:
                 rospy.logerr("Audio data size is not compatible with the number of channels.")
-                resampled_audio = np.zeros((frames, self.channels), dtype='int16')
+                audio_array = np.zeros((frames, self.channels), dtype='int16')
 
         # Handle cases where the chunk size doesn't match the stream's blocksize
-        if len(resampled_audio) < frames * self.channels:
+        if len(audio_array) < frames * self.channels:
             # Pad with zeros if the chunk is smaller
-            pad_width = (frames * self.channels) - len(resampled_audio)
-            resampled_audio = np.pad(resampled_audio, (0, pad_width), 'constant', constant_values=0)
-        elif len(resampled_audio) > frames * self.channels:
+            pad_width = (frames * self.channels) - len(audio_array)
+            audio_array = np.pad(audio_array, (0, pad_width), 'constant', constant_values=0)
+        elif len(audio_array) > frames * self.channels:
             # Trim the chunk if it's larger
-            resampled_audio = resampled_audio[:frames * self.channels]
+            audio_array = audio_array[:frames * self.channels]
 
-        outdata[:] = resampled_audio.reshape((frames, self.channels))
+        outdata[:] = audio_array.reshape((frames, self.channels))
 
         # Compute RMS and publish mouth angles
         rms = self._compute_chunk_rms(data)
