@@ -159,16 +159,14 @@ class WavToMouth():
             data = self.data.pop(0)
 
         # Convert bytes to NumPy array
-        audio_array = np.frombuffer(data, dtype=np.int16)
+        audio_array = np.frombuffer(data, dtype=np.int16).astype(np.float32) / 32768.0  # Scale for librosa compatibility
 
-        # Modify playback speed using interpolation
+        # Apply time-stretching to slow down playback without changing pitch
         if self.playback_speed != 1.0:
-            original_indices = np.arange(audio_array.shape[0])
-            new_length = int(audio_array.shape[0] / self.playback_speed)
-            new_indices = np.linspace(0, original_indices[-1], new_length)
-            
-            # Interpolate audio data to fit new indices
-            audio_array = np.interp(new_indices, original_indices, audio_array).astype(np.int16)
+            audio_array = librosa.effects.time_stretch(audio_array, self.playback_speed)
+
+        # Rescale back to original int16 range
+        audio_array = (audio_array * 32768.0).astype(np.int16)
 
         # Reshape based on channels
         if self.channels > 1:
