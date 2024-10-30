@@ -115,10 +115,10 @@ class WavToMouth():
         if len(self.data) > 0 and self.stream is not None:
             data = self.data.pop(0)
 
-            # Adjust the data length for playback speed without changing pitch
-            if self.playback_speed != 1.0:
+            # Ensure self.audio is set before accessing its attributes
+            if self.audio is not None and self.playback_speed != 1.0:
                 data, _ = audioop.ratecv(data, self.audio.getsampwidth(), self.audio.getnchannels(),
-                                         int(self.audio.getframerate()), int(self.audio.getframerate() * self.playback_speed), None)
+                                         self.audio.getframerate(), int(self.audio.getframerate() * self.playback_speed), None)
 
             self.stream.write(data)
 
