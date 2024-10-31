@@ -22,7 +22,6 @@ if __name__ == '__main__':
 
     keyword = [
         PACK_DIR + '/resources/Hello-Boris_en_linux_v3_0_0.ppn',
-        PACK_DIR + '/resources/Follow-me_en_linux_v3_0_0.ppn',
         PACK_DIR + '/resources/It--s-right_en_linux_v3_0_0.ppn',
         PACK_DIR + '/resources/It--s-wrong_en_linux_v3_0_0.ppn'
     ] 
