@@ -1,0 +1,3 @@
+butia_speech_synthesizer:
+  tag: "kan-bayashi/ljspeech_vits"
+  vocoder_tag: "none"
