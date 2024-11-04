@@ -10,6 +10,9 @@ from playsound import playsound
 from RealtimeSTT import AudioToTextRecorder
 import os
 
+import threading
+import time
+
 from termcolor import colored
 import warnings
 warning = rospy.get_param("warnings", False)
@@ -46,11 +49,21 @@ def handle_recognition(req):
         rospy.loginfo(f'Prompt to make easier the recognition: {req.prompt}')
         configs.update({'initial_prompt': req.prompt})
 
+    # Variable to store the start time of VAD detection
+    vad_start_time = [None]
+    
+    def check_vad_time(recorder):
+        while True:
+            if vad_start_time[0] is not None and (time.time() - vad_start_time[0]) > 10:
+                recorder.set_microphone(False)
+                break
+            time.sleep(1)
+
     # Update the configurations with additional parameters
     configs.update({
         'language': req.lang if req.lang != '' else DEFAULT_LANGUAGE,  # Set the language for recognition
         'on_recording_start': lambda: rospy.loginfo("Starting Record..."),  # Log message when recording starts
-        'on_vad_detect_start': lambda: playsound(TALK_AUDIO),  # Play beep sound when voice activity is detected
+        'on_vad_detect_start': lambda: (playsound(TALK_AUDIO), vad_start_time.__setitem__(0, time.time())),  # Play beep sound and store start time when voice activity is detected
         'on_vad_detect_stop': lambda: rospy.loginfo("Finished Listening..."),  # Log message when voice activity stops
         'on_recording_stop': lambda: rospy.loginfo("Processing...")  # Log message when recording stops
     })
@@ -58,6 +71,10 @@ def handle_recognition(req):
     try:
         # Initialize the audio-to-text recorder with the configurations
         with AudioToTextRecorder(**configs) as recorder:
+            # Start the thread to check VAD time
+            vad_thread = threading.Thread(target=check_vad_time, args=(recorder,))
+            vad_thread.start()
+            
             # Get the recognized text
             text = recorder.text()
 
