@@ -54,10 +54,12 @@ def handle_recognition(req):
     
     def check_vad_time(recorder):
         while True:
-            if vad_start_time[0] is not None and (time.time() - vad_start_time[0]) > 10:
-                recorder.set_microphone(False)
+            seconds_pass = (time.time() - vad_start_time[0])
+            if vad_start_time[0] is not None and seconds_pass > 8:
+                print(colored(f"Stopping listening, too long...{seconds_pass:.1f}s ","red"))
+                recorder.stop()
                 break
-            time.sleep(1)
+            time.sleep(0.1)
 
     # Update the configurations with additional parameters
     configs.update({
