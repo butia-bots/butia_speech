@@ -43,6 +43,9 @@ def handle_recognition(req):
 
     # Fetch the STT configurations from ROS parameters
     configs = rospy.get_param("~stt_configs/", default_config)
+    
+    # Fetch stt mic timeout
+    stt_mic_timeout = rospy.get_param("~stt_mic_timeout", 10)
 
     # If a prompt is provided, update the configurations
     if req.prompt != '':
@@ -55,7 +58,7 @@ def handle_recognition(req):
     def check_vad_time(recorder):
         while True:
             seconds_pass = (time.time() - vad_start_time[0])
-            if vad_start_time[0] is not None and seconds_pass > 8:
+            if vad_start_time[0] is not None and seconds_pass > stt_mic_timeout:
                 print(colored(f"Stopping listening, too long...{seconds_pass:.1f}s ","red"))
                 recorder.stop()
                 break
