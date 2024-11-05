@@ -3,9 +3,9 @@ import rospy
 import os
 import rospkg
 
-from butia_speech.detect_hotword import DetectHotWord
+from butia_speech.new_detect_hotword import newDetectHotWord
 
-from std_msgs.msg import Empty
+from std_msgs.msg import Int16
 
 from termcolor import colored
 import warnings
@@ -20,19 +20,22 @@ if __name__ == '__main__':
     
     sensibility = rospy.get_param("/butia_hotword_detection/sensibility", 0.5)
 
-    # keyword = [PACK_DIR + '/resources/Hello-Doris_en_linux_v2_1_0.ppn', PACK_DIR + '/resources/Follow-me_en_linux_v2_1_0.ppn']
-    keyword = [PACK_DIR + '/resources/Hello-Boris_en_linux_v3_0_0.ppn']
+    keyword = [
+        PACK_DIR + '/resources/Hello-Boris_en_linux_v3_0_0.ppn',
+        PACK_DIR + '/resources/It--s-right_en_linux_v3_0_0.ppn',
+        PACK_DIR + '/resources/It--s-wrong_en_linux_v3_0_0.ppn'
+    ] 
 
     sensibility = [sensibility]*len(keyword)
 
     detector_publisher_param = rospy.get_param("publishers/butia_hotword_detection/topic","/butia_speech/bhd/detected")
     detector_subscriber_param = rospy.get_param("subscribers/butia_hotword_detection/topic","/butia_speech/bhd/hot_word")
-    detector_publisher = rospy.Publisher(detector_publisher_param, Empty, queue_size=1)
+    detector_publisher = rospy.Publisher(detector_publisher_param, Int16, queue_size=1)
 
-    detector = DetectHotWord(keyword, sensibility)
+    detector = newDetectHotWord(keyword, sensibility)
 
     detector.hear()
     while not rospy.is_shutdown():
         result = detector.process()
-        if result:
-            detector_publisher.publish(Empty())
+        if result>=0:
+            detector_publisher.publish(result)
