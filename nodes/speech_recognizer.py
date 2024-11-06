@@ -68,7 +68,7 @@ def handle_recognition(req):
     configs.update({
         'language': req.lang if req.lang != '' else DEFAULT_LANGUAGE,  # Set the language for recognition
         'on_recording_start': lambda: rospy.loginfo("Starting Record..."),  # Log message when recording starts
-        'on_vad_detect_start': lambda: (playsound(TALK_AUDIO), vad_start_time.__setitem__(0, time.time())),  # Play beep sound and store start time when voice activity is detected
+        'on_vad_detect_start': lambda: playsound(TALK_AUDIO),  # Play beep sound and store start time when voice activity is detected
         'on_vad_detect_stop': lambda: rospy.loginfo("Finished Listening..."),  # Log message when voice activity stops
         'on_recording_stop': lambda: rospy.loginfo("Processing...")  # Log message when recording stops
     })
@@ -77,6 +77,7 @@ def handle_recognition(req):
         # Initialize the audio-to-text recorder with the configurations
         with AudioToTextRecorder(**configs) as recorder:
             # Start the thread to check VAD time
+            vad_start_time.__setitem__(0, time.time())
             vad_thread = threading.Thread(target=check_vad_time, args=(recorder,))
             vad_thread.start()
             
@@ -115,10 +116,10 @@ if __name__ == '__main__':
     # Fetch the STT configurations from ROS parameters
     configs = rospy.get_param("~stt_configs/", default_config)
 
-    with AudioToTextRecorder(compute_type='float32', model=configs["model"], spinner=False) as recorder:
+    '''with AudioToTextRecorder(compute_type='float32', model=configs["model"], spinner=False) as recorder:
         recorder.start()
         time.sleep(1)
-        recorder.stop()
+        recorder.stop()'''
     # recorder.shutdown()
     # Fetch the recognizer service parameter
     recognizer_service_param = rospy.get_param("~services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
