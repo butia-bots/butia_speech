@@ -11,4 +11,4 @@ stt_configs:
   enable_realtime_transcription: False
   silero_deactivity_detection: True
 
-stt_mic_timeout: 10
+stt_mic_timeout: 4

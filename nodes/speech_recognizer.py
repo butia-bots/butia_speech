@@ -99,7 +99,27 @@ def handle_recognition(req):
 if __name__ == '__main__':
     # Initialize the ROS node
     rospy.init_node('speech_recognizer')
-    
+    default_config = {
+        "spinner": False,
+        "model": "small.en",
+        "silero_sensitivity": 0.8,
+        "device": "cpu",
+        "webrtc_sensitivity": 0.6,
+        "post_speech_silence_duration": 0.4,
+        "min_length_of_recording": 1,
+        "min_gap_between_recordings": 0,
+        "enable_realtime_transcription": False,
+        "silero_deactivity_detection": True,
+    }
+
+    # Fetch the STT configurations from ROS parameters
+    configs = rospy.get_param("~stt_configs/", default_config)
+
+    with AudioToTextRecorder(compute_type='float32', model=configs["model"], spinner=False) as recorder:
+        recorder.start()
+        time.sleep(1)
+        recorder.stop()
+    # recorder.shutdown()
     # Fetch the recognizer service parameter
     recognizer_service_param = rospy.get_param("~services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
 
