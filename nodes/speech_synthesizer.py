@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # coding: utf-8
-from butia_speech.srv import AudioPlayer, SynthesizeSpeech, SynthesizeSpeechResponse
+from butia_speech.srv import AudioPlayer,AudioPlayerByData, AudioPlayerByDataRequest, SynthesizeSpeech, SynthesizeSpeechResponse
 from butia_speech.msg import SynthesizeSpeechMessage
 from std_msgs.msg import Bool
+from audio_common_msgs.msg import AudioData, AudioInfo
 
 from scipy.io import wavfile
 import os
@@ -52,21 +53,26 @@ def synthesize_speech(req):
     )
     # Convert the response audio to a NumPy array
     audio_samples = np.frombuffer(resp.audio, dtype=np.int16)
-    try:
-        # Write the audio samples to a WAV file
-        wavfile.write(FILENAME, configs["sample_rate_hz"], audio_samples)
-        print("success")  # Print success message if the file is written successfully
-    except:
-        print("error")  # Print error message if there is an issue writing the file
     
-    # Fetch the audio player service parameter
-    audio_player_service_param = rospy.get_param("services/audio_player/service", "/butia_speech/ap/audio_player")
-    # Wait for the audio player service to be available
-    rospy.wait_for_service(audio_player_service_param, timeout=rospy.Duration(10))
-    try:
-        audio_player = rospy.ServiceProxy(audio_player_service_param, AudioPlayer)
-        audio_player(FILENAME)
+    audio_data = AudioData()
+    audio_data.data = audio_samples.tobytes()
+    audio_info = AudioInfo()
+    audio_info.sample_rate = configs["sample_rate_hz"]
+    audio_info.channels = 1
+    audio_info.sample_format = '16'  # Assuming 16-bit PCM
 
+    # Fetch the audio player by data service parameter
+    audio_player_by_data_service_param = rospy.get_param("services/audio_player_by_data/service", "/butia_speech/ap/audio_player_by_data")
+    # Wait for the audio player by data service to be available
+    rospy.wait_for_service(audio_player_by_data_service_param, timeout=rospy.Duration(10))
+    try:
+        audio_player_by_data = rospy.ServiceProxy(audio_player_by_data_service_param, AudioPlayerByData)
+        
+        request = AudioPlayerByDataRequest()
+        request.data = audio_data
+        request.audio_info = audio_info
+        audio_player_by_data(request)
+        
         response = SynthesizeSpeechResponse()
         response.success = True
         return response
