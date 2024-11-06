@@ -1,14 +1,13 @@
 <?xml version="1.0" ?>
 <launch>
     <arg name="speech_synthesizer_machine" default="jetson"/>
-    <arg name="audio_player_machine" default="jetson"/>
     <arg name="use_machine" default="true"/>
 
     <rosparam file="$(find butia_speech)/config/ros.yaml" command="load"/>
     <rosparam file="$(find butia_speech)/config/butia_speech_synthesizer.yaml" command="load"/>
     <rosparam file="$(find butia_speech)/config/butia_audio_player.yaml" command="load"/>
     
-    <node name="audio_player" pkg="butia_speech" type="audio_player.py" output="screen" machine="$(arg audio_player_machine)"/>
+    <node name="audio_player" pkg="butia_speech" type="audio_player.py" output="screen"/>
 
     <node name="speech_synthesizer" pkg="butia_speech" type="speech_synthesizer.py" output="screen" machine="$(arg speech_synthesizer_machine)"/>
 

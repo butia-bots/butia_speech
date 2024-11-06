@@ -10,6 +10,9 @@ from playsound import playsound
 from RealtimeSTT import AudioToTextRecorder
 import os
 
+import threading
+import time
+
 from termcolor import colored
 import warnings
 warning = rospy.get_param("warnings", False)
@@ -26,14 +29,13 @@ DEFAULT_LANGUAGE = 'en'
 
 def handle_recognition(req):
     default_config = {
-        "compute_type": "float32",
         "spinner": False,
         "model": "small.en",
-        "silero_sensitivity": 0.5,
+        "silero_sensitivity": 0.8,
         "device": "cpu",
-        "webrtc_sensitivity": 1,
+        "webrtc_sensitivity": 0.6,
         "post_speech_silence_duration": 0.4,
-        "min_length_of_recording": 0.5,
+        "min_length_of_recording": 1,
         "min_gap_between_recordings": 0,
         "enable_realtime_transcription": False,
         "silero_deactivity_detection": True,
@@ -41,17 +43,32 @@ def handle_recognition(req):
 
     # Fetch the STT configurations from ROS parameters
     configs = rospy.get_param("~stt_configs/", default_config)
+    
+    # Fetch stt mic timeout
+    stt_mic_timeout = rospy.get_param("~stt_mic_timeout", 10)
 
     # If a prompt is provided, update the configurations
     if req.prompt != '':
         rospy.loginfo(f'Prompt to make easier the recognition: {req.prompt}')
         configs.update({'initial_prompt': req.prompt})
 
+    # Variable to store the start time of VAD detection
+    vad_start_time = [None]
+    
+    def check_vad_time(recorder):
+        while True:
+            seconds_pass = (time.time() - vad_start_time[0])
+            if vad_start_time[0] is not None and seconds_pass > stt_mic_timeout:
+                print(colored(f"Stopping listening, too long...{seconds_pass:.1f}s ","red"))
+                recorder.stop()
+                break
+            time.sleep(0.1)
+
     # Update the configurations with additional parameters
     configs.update({
         'language': req.lang if req.lang != '' else DEFAULT_LANGUAGE,  # Set the language for recognition
         'on_recording_start': lambda: rospy.loginfo("Starting Record..."),  # Log message when recording starts
-        'on_vad_detect_start': lambda: playsound(TALK_AUDIO),  # Play beep sound when voice activity is detected
+        'on_vad_detect_start': lambda: playsound(TALK_AUDIO),  # Play beep sound and store start time when voice activity is detected
         'on_vad_detect_stop': lambda: rospy.loginfo("Finished Listening..."),  # Log message when voice activity stops
         'on_recording_stop': lambda: rospy.loginfo("Processing...")  # Log message when recording stops
     })
@@ -59,6 +76,11 @@ def handle_recognition(req):
     try:
         # Initialize the audio-to-text recorder with the configurations
         with AudioToTextRecorder(**configs) as recorder:
+            # Start the thread to check VAD time
+            vad_start_time.__setitem__(0, time.time())
+            vad_thread = threading.Thread(target=check_vad_time, args=(recorder,))
+            vad_thread.start()
+            
             # Get the recognized text
             text = recorder.text()
 
@@ -78,7 +100,27 @@ def handle_recognition(req):
 if __name__ == '__main__':
     # Initialize the ROS node
     rospy.init_node('speech_recognizer')
-    
+    default_config = {
+        "spinner": False,
+        "model": "small.en",
+        "silero_sensitivity": 0.8,
+        "device": "cpu",
+        "webrtc_sensitivity": 0.6,
+        "post_speech_silence_duration": 0.4,
+        "min_length_of_recording": 1,
+        "min_gap_between_recordings": 0,
+        "enable_realtime_transcription": False,
+        "silero_deactivity_detection": True,
+    }
+
+    # Fetch the STT configurations from ROS parameters
+    configs = rospy.get_param("~stt_configs/", default_config)
+
+    '''with AudioToTextRecorder(compute_type='float32', model=configs["model"], spinner=False) as recorder:
+        recorder.start()
+        time.sleep(1)
+        recorder.stop()'''
+    # recorder.shutdown()
     # Fetch the recognizer service parameter
     recognizer_service_param = rospy.get_param("~services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
 
