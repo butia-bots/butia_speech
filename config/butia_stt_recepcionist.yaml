@@ -11,6 +11,6 @@ stt_configs:
   enable_realtime_transcription: False
   silero_deactivity_detection: True
   ensure_sentence_ends_with_period: False
-  initial_prompt: "James Sophie Julia Emma Sara Laura Hayley Susan Fleur Gabriëlle Robin John Liam Lucas William Kevin Jesse Noah Harrie Peter Robin coke cola dubbelfris fanta ice tea milk water"
+  initial_prompt: "James Sophie Julia Emma Sara Laura Hayley Susan Fleur Gabriëlle Robin John Liam Lucas William Kevin Jesse Noah Harrie Peter coke cola dubbelfris fanta ice tea milk water"
 
 stt_mic_timeout: 4

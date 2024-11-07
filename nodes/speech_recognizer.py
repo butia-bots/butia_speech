@@ -93,8 +93,8 @@ def handle_recognition(req):
         vad_thread = threading.Thread(target=check_vad_time, args=(recorder,))
         rospy.logerr(f'1: {init - time.time()}')
         vad_thread.start()
-        #thread1 = threading.Thread(target=delay_starter_recorder)
-        #thread1.start()
+        thread1 = threading.Thread(target=delay_starter_recorder)
+        thread1.start()
 
         # Get the recognized text
         text = recorder.text().lower()
@@ -144,7 +144,6 @@ if __name__ == '__main__':
     configs.update({
         'language':  DEFAULT_LANGUAGE,  # Set the language for recognition
          'on_recording_start': lambda: rospy.loginfo("Starting Record..."),  # Log message when recording starts
-        'on_vad_detect_start': lambda: playsound(TALK_AUDIO),  # Play beep sound and store start time when voice activity is detected
         'on_vad_detect_stop': lambda: rospy.loginfo("Finished Listening..."),  # Log message when voice activity stops
         'on_recording_stop': lambda: rospy.loginfo("Processing...")  # Log message when recording stops
     })

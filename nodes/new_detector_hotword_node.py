@@ -21,16 +21,12 @@ if __name__ == '__main__':
     
     sensibility = rospy.get_param("/butia_hotword_detection/sensibility", 0.5)
 
-    result_arr = [
-        'Hello Boris',
-        'Yes Boris',
-        'No Boris',
-        ]
+    result_arr = ['Yes', 'No']
 
     keyword = [
-        PACK_DIR + '/resources/Hello-Boris_en_linux_v3_0_0.ppn',
-        PACK_DIR + '/resources/It--s-right_en_linux_v3_0_0.ppn',
-        PACK_DIR + '/resources/It--s-wrong_en_linux_v3_0_0.ppn'
+        # PACK_DIR + '/resources/Hello-Boris_en_linux_v3_0_0.ppn',
+        PACK_DIR + '/resources/Yes-Boris_en_linux_v3_0_0.ppn',
+        PACK_DIR + '/resources/No-boris_en_linux_v3_0_0.ppn'
     ] 
 
     sensibility = [sensibility]*len(keyword)
@@ -49,4 +45,8 @@ if __name__ == '__main__':
         result = detector.process()
         if result>=0:
             rospy.logwarn(f"ouviu {result}")
-            detector_publisher.publish(result_arr[result])
+            rospy.logwarn(f"ouviu {result_arr}")
+            rospy.logwarn(f"ouviu {result_arr[int(result)]}")
+            data = String()
+            data.data = result_arr[result]
+            detector_publisher.publish(data)
