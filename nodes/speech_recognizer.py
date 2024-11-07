@@ -67,6 +67,7 @@ def handle_recognition(req):
             if vad_start_time[0] is not None and seconds_pass > stt_mic_timeout:
                 print(colored(f"Stopping listening, too long...{seconds_pass:.1f}s ","red"))
                 recorder.stop()
+                recorder.abort()
                 break
             time.sleep(0.1)
         rospy.logerr(f'dentro do check: {init - time.time()}')
@@ -103,7 +104,7 @@ def handle_recognition(req):
 
         try:
             # Shutdown the recorder
-            recorder.shutdown()
+            AudioToTextRecorder.stop()
         except:
             pass
     except Exception as e:
