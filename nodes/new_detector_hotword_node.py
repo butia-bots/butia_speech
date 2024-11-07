@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     result_arr = [
         'Hello Boris',
-        'Yes Boris'
+        'Yes Boris',
         'No Boris',
         ]
 
@@ -36,13 +36,17 @@ if __name__ == '__main__':
     sensibility = [sensibility]*len(keyword)
 
     detector_publisher_param = rospy.get_param("publishers/butia_hotword_detection/topic","/butia_speech/bhd/detected")
+
     detector_subscriber_param = rospy.get_param("subscribers/butia_hotword_detection/topic","/butia_speech/bhd/hot_word")
     detector_publisher = rospy.Publisher(detector_publisher_param, String, queue_size=1)
 
     detector = newDetectHotWord(keyword, sensibility)
 
     detector.hear()
+    
     while not rospy.is_shutdown():
+        
         result = detector.process()
         if result>=0:
+            rospy.logwarn(f"ouviu {result}")
             detector_publisher.publish(result_arr[result])
