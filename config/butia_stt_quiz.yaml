@@ -1,7 +1,7 @@
 stt_configs:
   compute_type: "float32"
   spinner: False
-  model: "small.en"
+  model: "medium.en"
   silero_sensitivity: 0.5
   device: "cpu"
   webrtc_sensitivity: 1
