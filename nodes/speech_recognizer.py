@@ -35,11 +35,11 @@ def handle_recognition(req):
     global recorder
     default_config = {
         "spinner": False,
-        "model": "small.en",
+        "model": "medium.en",
         "silero_sensitivity": 0.8,
         "device": "cpu",
         "webrtc_sensitivity": 0.6,
-        "post_speech_silence_duration": 0.4,
+        "post_speech_silence_duration": 0.8,
         "min_length_of_recording": 1,
         "min_gap_between_recordings": 0,
         "enable_realtime_transcription": False,
