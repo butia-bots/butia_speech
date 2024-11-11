@@ -27,7 +27,12 @@ TALK_AUDIO = os.path.join(AUDIO_DIR, "beep.wav")
 
 DEFAULT_LANGUAGE = 'en'
 
+def delay_starter_recorder():
+    time.sleep(0.5)
+    playsound(TALK_AUDIO)
+
 def handle_recognition(req):
+    global recorder
     default_config = {
         "spinner": False,
         "model": "small.en",
@@ -56,37 +61,50 @@ def handle_recognition(req):
     vad_start_time = [None]
     
     def check_vad_time(recorder):
+        init = time.time()
         while True:
             seconds_pass = (time.time() - vad_start_time[0])
             if vad_start_time[0] is not None and seconds_pass > stt_mic_timeout:
                 print(colored(f"Stopping listening, too long...{seconds_pass:.1f}s ","red"))
                 recorder.stop()
+                recorder.abort()
                 break
             time.sleep(0.1)
+        rospy.logerr(f'dentro do check: {init - time.time()}')
+        
 
-    # Update the configurations with additional parameters
-    configs.update({
-        'language': req.lang if req.lang != '' else DEFAULT_LANGUAGE,  # Set the language for recognition
-        'on_recording_start': lambda: rospy.loginfo("Starting Record..."),  # Log message when recording starts
-        'on_vad_detect_start': lambda: playsound(TALK_AUDIO),  # Play beep sound and store start time when voice activity is detected
-        'on_vad_detect_stop': lambda: rospy.loginfo("Finished Listening..."),  # Log message when voice activity stops
-        'on_recording_stop': lambda: rospy.loginfo("Processing...")  # Log message when recording stops
-    })
+    # # Update the configurations with additional parameters
+    # configs.update({
+    #     'language': req.lang if req.lang != '' else DEFAULT_LANGUAGE,  # Set the language for recognition
+    #     'on_recording_start': lambda: rospy.loginfo("Starting Record..."),  # Log message when recording starts
+    #     'on_vad_detect_start': lambda: playsound(TALK_AUDIO),  # Play beep sound and store start time when voice activity is detected
+    #     'on_vad_detect_stop': lambda: rospy.loginfo("Finished Listening..."),  # Log message when voice activity stops
+    #     'on_recording_stop': lambda: rospy.loginfo("Processing...")  # Log message when recording stops
+    # })
 
     try:
-        # Initialize the audio-to-text recorder with the configurations
-        with AudioToTextRecorder(**configs) as recorder:
-            # Start the thread to check VAD time
-            vad_start_time.__setitem__(0, time.time())
-            vad_thread = threading.Thread(target=check_vad_time, args=(recorder,))
-            vad_thread.start()
-            
-            # Get the recognized text
-            text = recorder.text()
+    #     # Initialize the audio-to-text recorder with the configurations
+    #     init = time.time()
+    #     # with AudioToTextRecorder(**configs) as recorder:
+    #     recorder = AudioToTextRecorder(**configs)
+        rospy.logerr(f'1: {init - time.time()}')
+        # Start the thread to check VAD time
+        vad_start_time.__setitem__(0, time.time())
+        rospy.logerr(f'1: {init - time.time()}')
+        vad_thread = threading.Thread(target=check_vad_time, args=(recorder,))
+        rospy.logerr(f'1: {init - time.time()}')
+        vad_thread.start()
+        thread1 = threading.Thread(target=delay_starter_recorder)
+        thread1.start()
+
+        # Get the recognized text
+        text = recorder.text().lower()
+        rospy.logerr(f'seila: {init - time.time()}')
+        rospy.logerr(f'final: {init - time.time()}')
 
         try:
             # Shutdown the recorder
-            AudioToTextRecorder.shutdown()
+            AudioToTextRecorder.stop()
         except:
             pass
     except Exception as e:
@@ -98,6 +116,7 @@ def handle_recognition(req):
     )
 
 if __name__ == '__main__':
+    global recorder
     # Initialize the ROS node
     rospy.init_node('speech_recognizer')
     default_config = {
@@ -122,6 +141,19 @@ if __name__ == '__main__':
         recorder.stop()'''
     # recorder.shutdown()
     # Fetch the recognizer service parameter
+     # Update the configurations with additional parameters
+    configs.update({
+        'language':  DEFAULT_LANGUAGE,  # Set the language for recognition
+         'on_recording_start': lambda: rospy.loginfo("Starting Record..."),  # Log message when recording starts
+        'on_vad_detect_stop': lambda: rospy.loginfo("Finished Listening..."),  # Log message when voice activity stops
+        'on_recording_stop': lambda: rospy.loginfo("Processing...")  # Log message when recording stops
+    })
+        #'on_vad_detect_start': lambda: playsound(TALK_AUDIO),  # Play beep sound and store start time when voice activity is detected
+        # Initialize the audio-to-text recorder with the configurations
+    init = time.time()
+    # with AudioToTextRecorder(**configs) as recorder:
+    recorder = AudioToTextRecorder(**configs)
+
     recognizer_service_param = rospy.get_param("~services/speech_recognizer/service", "/butia_speech/sr/speech_recognizer")
 
     # Provide the speech recognition service
