@@ -125,7 +125,6 @@ if __name__ == '__main__':
         "min_gap_between_recordings": 0,
         "enable_realtime_transcription": False,
         "silero_deactivity_detection": True,
-        "initial_prompt": "Bahia Robocup 2006"
     }
 
     # Fetch the STT configurations from ROS parameters
