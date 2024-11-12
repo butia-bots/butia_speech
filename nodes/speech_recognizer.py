@@ -39,8 +39,8 @@ def handle_recognition(req):
         "silero_sensitivity": 0.8,
         "device": "cpu",
         "webrtc_sensitivity": 0.6,
-        "post_speech_silence_duration": 0.8,
-        "min_length_of_recording": 1,
+        "post_speech_silence_duration": 1.0,
+        "min_length_of_recording": 3,
         "min_gap_between_recordings": 0,
         "enable_realtime_transcription": False,
         "silero_deactivity_detection": True,
@@ -87,20 +87,15 @@ def handle_recognition(req):
     #     init = time.time()
     #     # with AudioToTextRecorder(**configs) as recorder:
     #     recorder = AudioToTextRecorder(**configs)
-        rospy.logerr(f'1: {init - time.time()}')
         # Start the thread to check VAD time
         vad_start_time.__setitem__(0, time.time())
-        rospy.logerr(f'1: {init - time.time()}')
         vad_thread = threading.Thread(target=check_vad_time, args=(recorder,))
-        rospy.logerr(f'1: {init - time.time()}')
         vad_thread.start()
         thread1 = threading.Thread(target=delay_starter_recorder)
         thread1.start()
 
         # Get the recognized text
         text = recorder.text().lower()
-        rospy.logerr(f'seila: {init - time.time()}')
-        rospy.logerr(f'final: {init - time.time()}')
 
         try:
             # Shutdown the recorder
@@ -125,11 +120,12 @@ if __name__ == '__main__':
         "silero_sensitivity": 0.8,
         "device": "cpu",
         "webrtc_sensitivity": 0.6,
-        "post_speech_silence_duration": 0.8,
-        "min_length_of_recording": 1,
+        "post_speech_silence_duration": 1.0,
+        "min_length_of_recording": 3,
         "min_gap_between_recordings": 0,
         "enable_realtime_transcription": False,
         "silero_deactivity_detection": True,
+        "initial_prompt": "Bahia Robocup 2006"
     }
 
     # Fetch the STT configurations from ROS parameters
