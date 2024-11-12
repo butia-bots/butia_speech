@@ -10,6 +10,6 @@ stt_configs:
   min_gap_between_recordings: 0
   enable_realtime_transcription: False
   silero_deactivity_detection: True
-  initial_prompt: "Bahia Robocup 2006"
+  initial_prompt: "Goias Robocup 2006"
 
 stt_mic_timeout: 10
