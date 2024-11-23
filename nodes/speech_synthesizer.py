@@ -12,7 +12,7 @@ import numpy as np
 import rospkg
 
 import numpy as np
-#import riva.client
+import riva.client
 
 from termcolor import colored
 import warnings
@@ -115,9 +115,9 @@ if __name__ == '__main__':
 
     riva_url = rospy.get_param("~riva/url", "localhost:50051")
     # Authenticate with the Riva server
-    #auth = riva.client.Auth(uri=riva_url)
+    auth = riva.client.Auth(uri=riva_url)
     # Initialize the Riva TTS service
-    #riva_tts = riva.client.SpeechSynthesisService(auth)
+    riva_tts = riva.client.SpeechSynthesisService(auth)
 
     # Fetch the subscriber topic parameter
     say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
