@@ -12,10 +12,11 @@ import numpy as np
 import rospkg
 
 import numpy as np
-import riva.client
+#import riva.client
 
 from termcolor import colored
 import warnings
+import requests
 
 
 # Fetch the warning parameter from ROS parameters
@@ -31,6 +32,20 @@ AUDIO_DIR = os.path.join(PACK_DIR, "audios/")
 # Set the filename for the generated audio file
 FILENAME = str(AUDIO_DIR) + "talk.wav"
 
+def fetch_synthesized_speech_pt(text):
+    url = 'http://localhost:5000'
+    params = {'text': text}
+    response = requests.get(url, params=params, stream=True)
+    
+    if response.status_code == 200:
+        audio_data = b""
+        for chunk in response.iter_content(chunk_size=8192):
+            audio_data += chunk
+        return audio_data
+    else:
+        rospy.logerr(f"Failed to fetch synthesized speech: {response.status_code}")
+        return None
+
 def synthesize_speech(req):
     config_defaults = {
         "language_code": "en-US",
@@ -39,20 +54,30 @@ def synthesize_speech(req):
     }
     configs = rospy.get_param("tts_configs/", config_defaults)
 
-    # Extract the text to be synthesized from the request
     speech = req.text
+    lang = req.lang
     
-    # Call Riva TTS to synthesize the speech
-    resp = riva_tts.synthesize(
-        custom_dictionary=configs, 
-        text=speech,
-        voice_name=configs["voice_name"], 
-        sample_rate_hz=configs["sample_rate_hz"],
-        language_code=configs["language_code"],
-        encoding=riva.client.AudioEncoding.LINEAR_PCM,
-    )
-    # Convert the response audio to a NumPy array
-    audio_samples = np.frombuffer(resp.audio, dtype=np.int16)
+    if lang == "pt":
+        configs["sample_rate_hz"] = 22050
+        # Fetch the synthesized speech from the external service
+        audio_data_bytes = fetch_synthesized_speech_pt(speech)
+        if audio_data_bytes is None:
+            response = SynthesizeSpeechResponse()
+            response.success = False
+            return response
+        audio_samples = np.frombuffer(audio_data_bytes, dtype=np.int16)
+    else:
+        # Call Riva TTS to synthesize the speech
+        resp = riva_tts.synthesize(
+            custom_dictionary=configs, 
+            text=speech,
+            voice_name=configs["voice_name"], 
+            sample_rate_hz=configs["sample_rate_hz"],
+            language_code=configs["language_code"],
+            encoding=riva.client.AudioEncoding.LINEAR_PCM,
+        )
+        # Convert the response audio to a NumPy array
+        audio_samples = np.frombuffer(resp.audio, dtype=np.int16)
     
     audio_data = AudioData()
     audio_data.data = audio_samples.tobytes()
@@ -90,9 +115,9 @@ if __name__ == '__main__':
 
     riva_url = rospy.get_param("~riva/url", "localhost:50051")
     # Authenticate with the Riva server
-    auth = riva.client.Auth(uri=riva_url)
+    #auth = riva.client.Auth(uri=riva_url)
     # Initialize the Riva TTS service
-    riva_tts = riva.client.SpeechSynthesisService(auth)
+    #riva_tts = riva.client.SpeechSynthesisService(auth)
 
     # Fetch the subscriber topic parameter
     say_something_subscriber_param = rospy.get_param("subscribers/speech_synthesizer/topic", "/butia_speech/ss/say_something")
