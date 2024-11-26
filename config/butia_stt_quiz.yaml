@@ -1,9 +1,9 @@
 stt_configs:
   compute_type: "float32"
   spinner: False
-  model: "distil-small.en"
+  model: "deepdml/faster-whisper-large-v3-turbo-ct2"
   silero_sensitivity: 0.6
-  device: "cpu"
+  device: "cuda"
   webrtc_sensitivity: 1
   post_speech_silence_duration: 1.2
   min_length_of_recording: 3.0

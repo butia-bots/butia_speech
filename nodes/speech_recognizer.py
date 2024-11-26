@@ -37,7 +37,7 @@ def handle_recognition(req):
         "spinner": False,
         "model": "distil-medium.en",
         "silero_sensitivity": 0.8,
-        "device": "cpu",
+        "device": "cuda",
         "webrtc_sensitivity": 0.6,
         "post_speech_silence_duration": 1.0,
         "min_length_of_recording": 3,
@@ -116,9 +116,9 @@ if __name__ == '__main__':
     rospy.init_node('speech_recognizer')
     default_config = {
         "spinner": False,
-        "model": "distil-medium.en",
+        "model": "deepdml/faster-whisper-large-v3-turbo-ct2",
         "silero_sensitivity": 0.8,
-        "device": "cpu",
+        "device": "cuda",
         "webrtc_sensitivity": 0.6,
         "post_speech_silence_duration": 1.0,
         "min_length_of_recording": 3,
