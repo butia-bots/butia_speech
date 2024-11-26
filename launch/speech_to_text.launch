@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <launch>
-	<arg name="speech_synthesizer_machine" default="jetson"/>
+	<arg name="speech_recog_machine" default="jetson"/>
 	<arg name="use_machine" default="true"/>
 	<arg name="challenge_config" default="$(find butia_speech)/config/butia_stt_quiz.yaml"/>
 
